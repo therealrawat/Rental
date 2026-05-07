@@ -60,6 +60,12 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateUser = (updatedUser) => {
+    const newAuth = { ...auth, user: updatedUser };
+    setAuth(newAuth);
+    writeStoredAuth(newAuth);
+  };
+
   const logout = () => {
     setAuth(null);
     writeStoredAuth(null);
@@ -75,7 +81,8 @@ export function AuthProvider({ children }) {
       loading,
       login,
       register,
-      logout
+      logout,
+      updateUser
     }),
     [auth?.token, auth?.user, loading]
   );
