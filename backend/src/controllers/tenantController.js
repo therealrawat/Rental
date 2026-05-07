@@ -6,12 +6,27 @@ import { User } from "../models/User.js";
 export async function listTenants(req, res, next) {
   try {
     if (req.user.role === "tenant") {
-      const tenants = await Tenant.find({ userId: req.user.id })
-        .populate({
-          path: "propertyId",
-          select: "name address userId",
-          populate: { path: "userId", select: "name email" }
-        });
+      // Find by userId OR email (fallback) to ensure the tenant sees their lease
+      const tenants = await Tenant.find({ 
+        $or: [
+          { userId: req.user.id },
+          { email: req.user.email }
+        ]
+      })
+      .populate({
+        path: "propertyId",
+        select: "name address userId",
+        populate: { path: "userId", select: "name email" }
+      });
+      
+      // Auto-link userId if it was found by email but link was missing
+      for (const t of tenants) {
+        if (!t.userId) {
+          t.userId = req.user.id;
+          await t.save();
+        }
+      }
+
       return res.json(tenants);
     }
 
@@ -97,7 +112,7 @@ export async function getTenant(req, res, next) {
     if (!tenant) return res.status(404).json({ message: "Tenant not found" });
 
     const isLandlord = String(tenant.propertyId.userId._id || tenant.propertyId.userId) === String(req.user.id);
-    const isSelf = String(tenant.userId) === String(req.user.id);
+    const isSelf = String(tenant.userId) === String(req.user.id) || tenant.email === req.user.email;
 
     if (!isLandlord && !isSelf) {
       return res.status(403).json({ message: "Forbidden" });
@@ -116,7 +131,7 @@ export async function updateTenant(req, res, next) {
 
     const property = await Property.findById(tenant.propertyId);
     const isLandlord = String(property.userId) === String(req.user.id);
-    const isSelf = String(tenant.userId) === String(req.user.id);
+    const isSelf = String(tenant.userId) === String(req.user.id) || tenant.email === req.user.email;
 
     if (!isLandlord && !isSelf) {
       return res.status(403).json({ message: "Forbidden" });

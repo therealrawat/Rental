@@ -6,16 +6,17 @@ import { signAccessToken } from "../utils/jwt.js";
 export async function register(req, res, next) {
   try {
     const { name, email, password, role } = req.body;
+    const normalizedEmail = email.trim().toLowerCase();
 
-    const existing = await User.findOne({ email });
+    const existing = await User.findOne({ email: normalizedEmail });
     if (existing) return res.status(409).json({ message: "Email already in use" });
 
     const hashed = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, email, password: hashed, role: role || "landlord" });
+    const user = await User.create({ name, email: normalizedEmail, password: hashed, role: role || "landlord" });
 
-    // If tenant, try to link to an existing tenant record with this email
+    // If tenant, try to link to any existing tenant records that might have been created by email before registration
     if (user.role === "tenant") {
-      await Tenant.updateMany({ email: user.email }, { userId: user._id });
+      await Tenant.updateMany({ email: normalizedEmail }, { userId: user._id });
     }
 
     const token = signAccessToken(user);
@@ -31,8 +32,9 @@ export async function register(req, res, next) {
 export async function login(req, res, next) {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = email.trim().toLowerCase();
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
     const ok = await bcrypt.compare(password, user.password);

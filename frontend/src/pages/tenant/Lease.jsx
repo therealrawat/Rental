@@ -1,188 +1,202 @@
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import Button from "../../components/common/Button.jsx";
-import Input from "../../components/common/Input.jsx";
 import { tenantsApi } from "../../services/api.js";
-import { validators } from "../../utils/validators.js";
 import { useAuth } from "../../context/AuthContext.jsx";
-import { User as UserIcon, Home, Calendar, FileText, Download, Clock } from "lucide-react";
+import { Home, Calendar, FileText, Download, Clock, CreditCard, User as UserIcon, ShieldCheck } from "lucide-react";
 
 export default function Lease() {
   const { user } = useAuth();
   const [lease, setLease] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false);
-
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
-
-  const fetchLease = async () => {
-    setLoading(true);
-    try {
-      const data = await tenantsApi.list();
-      if (data.length > 0) {
-        setLease(data[0]);
-        reset({
-          name: data[0].name,
-          phone: data[0].phone
-        });
-      }
-    } catch (err) {
-      toast.error("Failed to load lease info");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
-    fetchLease();
+    (async () => {
+      try {
+        const data = await tenantsApi.list();
+        if (data.length > 0) setLease(data[0]);
+      } catch (err) {
+        toast.error("Failed to load lease info");
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
-  const onUpdateProfile = async (values) => {
-    setEditing(true);
-    try {
-      await tenantsApi.update(lease._id, values);
-      toast.success("Profile updated");
-      await fetchLease();
-    } catch (err) {
-      toast.error("Update failed");
-    } finally {
-      setEditing(false);
-    }
-  };
-
-  if (loading) return <div className="p-8 text-gray-500">Loading lease details...</div>;
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] text-gray-500">
+      <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+      <p className="font-medium animate-pulse">Fetching your lease agreement...</p>
+    </div>
+  );
 
   if (!lease) {
     return (
-      <div className="bg-white rounded-2xl border p-12 text-center max-w-2xl mx-auto mt-10">
-        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-400">
-          <FileText size={40} />
+      <div className="bg-white rounded-3xl border border-gray-100 p-16 text-center max-w-2xl mx-auto mt-10 shadow-sm">
+        <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-8 text-gray-300">
+          <FileText size={48} />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">No Active Lease</h2>
-        <p className="text-gray-500">We couldn't find a lease record for your account. Please link your property or contact your landlord.</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-3">No Active Lease Found</h2>
+        <p className="text-gray-500 leading-relaxed">
+          It looks like there isn't an active lease agreement linked to your account yet. 
+          Please contact your landlord to have them add you to the property.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
-      <div className="flex justify-between items-end">
+    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Lease Information</h1>
-          <p className="text-gray-500 mt-1">Detailed overview of your rental agreement.</p>
+          <div className="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-[0.2em] mb-2">
+            <ShieldCheck size={14} /> Verified Agreement
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">My Lease Details</h1>
+          <p className="text-gray-500 mt-2 font-medium">Agreement between {lease.propertyId?.userId?.name} and {user?.name}</p>
         </div>
-        <Button variant="outline" className="flex items-center gap-2 border-gray-200">
+        <Button className="bg-gray-900 text-white rounded-2xl flex items-center gap-2 px-8 py-3 shadow-xl shadow-gray-900/20 hover:scale-105 transition-all">
           <Download size={18} />
-          Download PDF
+          Export as PDF
         </Button>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Main Info */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
-            <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <Home size={20} className="text-emerald-600" />
-              Property & Unit
+      <div className="grid gap-8 lg:grid-cols-12">
+        {/* Main Content Area */}
+        <div className="lg:col-span-8 space-y-8">
+          
+          {/* Property Section */}
+          <div className="bg-white rounded-[2rem] border border-gray-100 p-10 shadow-sm hover:shadow-md transition-shadow">
+            <h3 className="text-xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+              <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+                <Home size={20} />
+              </div>
+              Property & Unit Details
             </h3>
-            <div className="grid sm:grid-cols-2 gap-8">
+            <div className="grid sm:grid-cols-2 gap-y-10 gap-x-12">
               <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Property Name</label>
-                <p className="text-lg font-semibold text-gray-900 mt-1">{lease.propertyId?.name}</p>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">Property Name</label>
+                <p className="text-lg font-bold text-gray-900 mt-1">{lease.propertyId?.name}</p>
               </div>
               <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Unit Address</label>
-                <p className="text-sm text-gray-600 mt-1 leading-relaxed">{lease.propertyId?.address}</p>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">Unit Address</label>
+                <p className="text-sm font-medium text-gray-600 mt-1 leading-relaxed">{lease.propertyId?.address}</p>
               </div>
               <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Landlord</label>
-                <p className="text-sm font-semibold text-emerald-600 mt-1">{lease.propertyId?.userId?.name}</p>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">Landlord / Owner</label>
+                <div className="flex items-center gap-3 mt-2">
+                  <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500">
+                    <UserIcon size={14} />
+                  </div>
+                  <p className="text-sm font-bold text-emerald-600">{lease.propertyId?.userId?.name}</p>
+                </div>
               </div>
               <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Lease Status</label>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
-                  <span className="text-sm font-bold text-emerald-600">Active</span>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">Lease Status</label>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest rounded-full border border-emerald-100">
+                    Active & Valid
+                  </span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
-            <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <Calendar size={20} className="text-blue-600" />
-              Terms & Renewal
+          {/* Dates & Terms */}
+          <div className="bg-white rounded-[2rem] border border-gray-100 p-10 shadow-sm">
+            <h3 className="text-xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                <Calendar size={20} />
+              </div>
+              Lease Timeline
             </h3>
-            <div className="grid sm:grid-cols-3 gap-8">
-              <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Start Date</label>
-                <p className="text-sm font-semibold text-gray-900 mt-1">{new Date(lease.leaseStart).toLocaleDateString()}</p>
+            <div className="grid sm:grid-cols-3 gap-10">
+              <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">Start Date</label>
+                <p className="text-lg font-bold text-gray-900 mt-2">{new Date(lease.leaseStart).toLocaleDateString(undefined, { dateStyle: 'long' })}</p>
               </div>
-              <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">End Date</label>
-                <p className="text-sm font-semibold text-gray-900 mt-1">{new Date(lease.leaseEnd).toLocaleDateString()}</p>
+              <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">End Date</label>
+                <p className="text-lg font-bold text-gray-900 mt-2">{new Date(lease.leaseEnd).toLocaleDateString(undefined, { dateStyle: 'long' })}</p>
               </div>
-              <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Renewal Option</label>
-                <p className="text-sm text-gray-600 mt-1">Automatic</p>
+              <div className="p-6 bg-emerald-50 rounded-2xl border border-emerald-100">
+                <label className="text-[10px] font-black text-emerald-600/60 uppercase tracking-[0.15em]">Days Remaining</label>
+                <p className="text-2xl font-black text-emerald-700 mt-2">
+                  {Math.max(0, Math.ceil((new Date(lease.leaseEnd) - new Date()) / (1000 * 60 * 60 * 24)))}
+                </p>
               </div>
             </div>
             
-            <div className="mt-10 p-4 bg-blue-50 rounded-2xl flex items-start gap-4">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 shrink-0">
-                <Clock size={16} />
+            <div className="mt-10 p-6 bg-amber-50 rounded-[1.5rem] flex items-start gap-5 border border-amber-100">
+              <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 shrink-0">
+                <Clock size={20} />
               </div>
               <div>
-                <p className="text-sm font-bold text-blue-900">Notice Period</p>
-                <p className="text-xs text-blue-700 mt-1">You must provide at least 30 days notice before the lease end date for move-out.</p>
+                <p className="text-sm font-bold text-amber-900">Important Notice Period</p>
+                <p className="text-xs text-amber-700 mt-1 leading-relaxed">
+                  As per your agreement, a minimum of <strong>30 days notice</strong> is required prior to move-out. 
+                  Failure to provide notice may impact security deposit returns.
+                </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Sidebar Info */}
-        <div className="space-y-6">
-          <div className="bg-gray-900 rounded-3xl p-8 text-white shadow-xl">
-            <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-              <CreditCard size={20} className="text-emerald-400" />
-              Financial Summary
-            </h3>
-            <div className="space-y-6">
-              <div>
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Monthly Rent</label>
-                <p className="text-3xl font-bold mt-1">₹ {Number(lease.rentAmount).toLocaleString()}</p>
-              </div>
-              <div className="pt-6 border-t border-gray-800">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Security Deposit</span>
-                  <span className="font-semibold">₹ {(lease.rentAmount * 2).toLocaleString()}</span>
+        {/* Financial Sidebar */}
+        <div className="lg:col-span-4 space-y-8">
+          <div className="bg-gray-900 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
+            <div className="relative z-10">
+              <h3 className="text-lg font-bold mb-8 flex items-center gap-3">
+                <CreditCard size={20} className="text-emerald-400" />
+                Rent Summary
+              </h3>
+              <div className="space-y-8">
+                <div>
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Monthly Rent</label>
+                  <p className="text-4xl font-black mt-2 tracking-tight">₹ {Number(lease.rentAmount).toLocaleString()}</p>
                 </div>
+                <div className="pt-8 border-t border-gray-800 flex justify-between items-center">
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Security Deposit</label>
+                    <p className="text-xl font-bold mt-1 text-emerald-400">₹ {(lease.rentAmount * 2).toLocaleString()}</p>
+                  </div>
+                </div>
+                <p className="text-[10px] text-gray-500 italic">
+                  * All amounts are processed securely through the platform.
+                </p>
               </div>
+            </div>
+            {/* Gradient accent */}
+            <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-[100px]"></div>
+          </div>
+
+          <div className="bg-white rounded-[2rem] border border-gray-100 p-10 shadow-sm">
+            <h3 className="text-lg font-bold text-gray-900 mb-6">Agreement Terms</h3>
+            <div className="space-y-5">
+              {[
+                { label: 'Pets', value: 'Not Allowed', ok: false },
+                { label: 'Parking', value: '1 Reserved Spot', ok: true },
+                { label: 'Smoking', value: 'Prohibited', ok: false },
+                { label: 'Subletting', value: 'Not Allowed', ok: false }
+              ].map((term, i) => (
+                <div key={i} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{term.label}</span>
+                  <span className={`text-xs font-bold ${term.ok ? 'text-emerald-600' : 'text-gray-900'}`}>{term.value}</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
-            <h3 className="text-lg font-bold text-gray-900 mb-6">Lease Rules</h3>
-            <ul className="space-y-4">
-              {['No Pets Allowed', '1 Parking Spot Included', 'No Smoking', 'No Loud Music after 10PM'].map((rule, i) => (
-                <li key={i} className="flex items-center gap-3 text-sm text-gray-600">
-                  <div className="w-1.5 h-1.5 bg-gray-300 rounded-full"></div>
-                  {rule}
-                </li>
-              ))}
-            </ul>
+          <div className="p-8 bg-blue-600 rounded-[2rem] text-white text-center shadow-xl shadow-blue-600/20">
+            <h4 className="font-bold mb-2">Need Help?</h4>
+            <p className="text-xs text-blue-100 mb-6">Contact our support or your landlord directly for any lease disputes.</p>
+            <button className="w-full bg-white text-blue-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-50 transition-colors">
+              Contact Landlord
+            </button>
           </div>
         </div>
       </div>
     </div>
-  );
-}
-
-function CreditCard({ size, className }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/>
-    </svg>
   );
 }
