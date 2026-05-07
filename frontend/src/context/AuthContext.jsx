@@ -44,10 +44,10 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const register = async ({ name, email, password }) => {
+  const register = async ({ name, email, password, role }) => {
     setLoading(true);
     try {
-      const data = await authApi.register({ name, email, password });
+      const data = await authApi.register({ name, email, password, role });
       setAuth(data);
       writeStoredAuth(data);
       toast.success("Account created");
@@ -88,4 +88,3 @@ export function useAuth() {
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
-
