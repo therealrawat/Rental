@@ -1,0 +1,63 @@
+import { Property } from "../models/Property.js";
+
+export async function listProperties(req, res, next) {
+  try {
+    const properties = await Property.find({ userId: req.user.id }).sort({ createdAt: -1 });
+    return res.json(properties);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function createProperty(req, res, next) {
+  try {
+    const { name, address, units, rent, status } = req.body;
+    const property = await Property.create({
+      userId: req.user.id,
+      name,
+      address,
+      units,
+      rent,
+      status
+    });
+    return res.status(201).json(property);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function getProperty(req, res, next) {
+  try {
+    const property = await Property.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!property) return res.status(404).json({ message: "Property not found" });
+    return res.json(property);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function updateProperty(req, res, next) {
+  try {
+    const { name, address, units, rent, status } = req.body;
+    const property = await Property.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.id },
+      { name, address, units, rent, status },
+      { new: true }
+    );
+    if (!property) return res.status(404).json({ message: "Property not found" });
+    return res.json(property);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function deleteProperty(req, res, next) {
+  try {
+    const deleted = await Property.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
+    if (!deleted) return res.status(404).json({ message: "Property not found" });
+    return res.json({ message: "Property deleted" });
+  } catch (err) {
+    return next(err);
+  }
+}
+

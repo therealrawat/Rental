@@ -1,0 +1,35 @@
+import axios from "axios";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
+export const api = axios.create({
+  baseURL: `${API_BASE_URL}/api`,
+  headers: { "Content-Type": "application/json" }
+});
+
+export function setAuthToken(token) {
+  if (token) api.defaults.headers.common.Authorization = `Bearer ${token}`;
+  else delete api.defaults.headers.common.Authorization;
+}
+
+export const authApi = {
+  register: (payload) => api.post("/auth/register", payload).then((r) => r.data),
+  login: (payload) => api.post("/auth/login", payload).then((r) => r.data)
+};
+
+export const propertiesApi = {
+  list: () => api.get("/properties").then((r) => r.data),
+  create: (payload) => api.post("/properties", payload).then((r) => r.data),
+  get: (id) => api.get(`/properties/${id}`).then((r) => r.data),
+  update: (id, payload) => api.put(`/properties/${id}`, payload).then((r) => r.data),
+  remove: (id) => api.delete(`/properties/${id}`).then((r) => r.data)
+};
+
+export const tenantsApi = {
+  list: () => api.get("/tenants").then((r) => r.data),
+  create: (payload) => api.post("/tenants", payload).then((r) => r.data),
+  get: (id) => api.get(`/tenants/${id}`).then((r) => r.data),
+  update: (id, payload) => api.put(`/tenants/${id}`, payload).then((r) => r.data),
+  remove: (id) => api.delete(`/tenants/${id}`).then((r) => r.data)
+};
+
