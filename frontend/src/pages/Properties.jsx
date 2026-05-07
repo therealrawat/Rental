@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import Button from "../components/common/Button.jsx";
 import Input from "../components/common/Input.jsx";
 import { propertiesApi } from "../services/api.js";
+import { validators } from "../utils/validators.js";
 
 export default function Properties() {
   const [items, setItems] = useState([]);
@@ -71,15 +72,15 @@ export default function Properties() {
             <div className="grid grid-cols-2 gap-3">
               <Input
                 label="Units"
-                type="number"
+                type="text"
                 error={errors.units?.message}
-                {...register("units", { required: "Units required", valueAsNumber: true, min: 0 })}
+                {...register("units", validators.integer)}
               />
               <Input
                 label="Rent"
-                type="number"
+                type="text"
                 error={errors.rent?.message}
-                {...register("rent", { required: "Rent required", valueAsNumber: true, min: 0 })}
+                {...register("rent", validators.amount)}
               />
             </div>
             <label className="block">

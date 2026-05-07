@@ -5,7 +5,8 @@ import {
   deleteTenant,
   getTenant,
   listTenants,
-  updateTenant
+  updateTenant,
+  joinLease
 } from "../controllers/tenantController.js";
 import { requireAuth } from "../middleware/auth.js";
 import { validate } from "../validators/validate.js";
@@ -15,6 +16,8 @@ const router = Router();
 router.use(requireAuth);
 
 router.get("/", listTenants);
+
+router.post("/join", joinLease);
 
 router.post(
   "/",
@@ -51,4 +54,3 @@ router.put(
 router.delete("/:id", [param("id").isString().notEmpty()], validate, deleteTenant);
 
 export default router;
-

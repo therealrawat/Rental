@@ -24,6 +24,11 @@ export default function Header({ onToggleMobileNav, onToggleSidebar }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const displayRole = useMemo(() => {
+    if (!user?.role) return "User";
+    return user.role.charAt(0).toUpperCase() + user.role.slice(1);
+  }, [user?.role]);
+
   return (
     <header className="header-container">
       <div className="flex items-center gap-4">
@@ -70,7 +75,7 @@ export default function Header({ onToggleMobileNav, onToggleSidebar }) {
             >
               <div className="hidden sm:block text-right mr-1">
                 <p className="text-xs font-semibold text-gray-900 leading-none">{user?.name || 'User'}</p>
-                <p className="text-[10px] text-gray-500 mt-0.5">Admin</p>
+                <p className="text-[10px] text-gray-500 mt-0.5">{displayRole}</p>
               </div>
               <div className="w-9 h-9 rounded-full bg-gray-900 text-white flex items-center justify-center text-xs font-bold shadow-sm">
                 {initials}

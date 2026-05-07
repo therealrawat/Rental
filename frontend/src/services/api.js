@@ -19,6 +19,7 @@ export const authApi = {
 
 export const propertiesApi = {
   list: () => api.get("/properties").then((r) => r.data),
+  search: (query) => api.get(`/properties/search?query=${query}`).then((r) => r.data),
   create: (payload) => api.post("/properties", payload).then((r) => r.data),
   get: (id) => api.get(`/properties/${id}`).then((r) => r.data),
   update: (id, payload) => api.put(`/properties/${id}`, payload).then((r) => r.data),
@@ -27,9 +28,9 @@ export const propertiesApi = {
 
 export const tenantsApi = {
   list: () => api.get("/tenants").then((r) => r.data),
+  join: (payload) => api.post("/tenants/join", payload).then((r) => r.data),
   create: (payload) => api.post("/tenants", payload).then((r) => r.data),
   get: (id) => api.get(`/tenants/${id}`).then((r) => r.data),
   update: (id, payload) => api.put(`/tenants/${id}`, payload).then((r) => r.data),
   remove: (id) => api.delete(`/tenants/${id}`).then((r) => r.data)
 };
-

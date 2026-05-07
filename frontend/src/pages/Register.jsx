@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Button from "../components/common/Button.jsx";
 import Input from "../components/common/Input.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import { validators } from "../utils/validators.js";
 
 export default function Register() {
   const { register: doRegister, loading } = useAuth();
@@ -62,10 +63,10 @@ export default function Register() {
             />
             <Input
               label="Email"
-              type="email"
+              type="text"
               placeholder="you@example.com"
               error={errors.email?.message}
-              {...register("email", { required: "Email is required" })}
+              {...register("email", validators.email)}
             />
             <Input
               label="Password"

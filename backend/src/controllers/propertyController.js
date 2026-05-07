@@ -1,8 +1,36 @@
 import { Property } from "../models/Property.js";
+import { User } from "../models/User.js";
 
 export async function listProperties(req, res, next) {
   try {
     const properties = await Property.find({ userId: req.user.id }).sort({ createdAt: -1 });
+    return res.json(properties);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function searchProperties(req, res, next) {
+  try {
+    const { query } = req.query;
+    if (!query) return res.json([]);
+
+    // Find users (landlords) by email if query looks like email
+    let landlordIds = [];
+    if (query.includes("@")) {
+      const landlords = await User.find({ email: new RegExp(query, "i"), role: "landlord" }).select("_id");
+      landlordIds = landlords.map(l => l._id);
+    }
+
+    const properties = await Property.find({
+      $or: [
+        { name: new RegExp(query, "i") },
+        { userId: { $in: landlordIds } }
+      ]
+    })
+    .limit(10)
+    .populate("userId", "name email");
+
     return res.json(properties);
   } catch (err) {
     return next(err);
@@ -60,4 +88,3 @@ export async function deleteProperty(req, res, next) {
     return next(err);
   }
 }
-

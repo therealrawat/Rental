@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import { User } from "../models/User.js";
+import { Tenant } from "../models/Tenant.js";
 import { signAccessToken } from "../utils/jwt.js";
 
 export async function register(req, res, next) {
@@ -11,6 +12,11 @@ export async function register(req, res, next) {
 
     const hashed = await bcrypt.hash(password, 10);
     const user = await User.create({ name, email, password: hashed, role: role || "landlord" });
+
+    // If tenant, try to link to an existing tenant record with this email
+    if (user.role === "tenant") {
+      await Tenant.updateMany({ email: user.email }, { userId: user._id });
+    }
 
     const token = signAccessToken(user);
     return res.status(201).json({
