@@ -38,6 +38,37 @@ export default function Properties() {
   const [processing, setProcessing] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
+  const initialValues = { 
+    name: "", 
+    address: "", 
+    units: 1, 
+    rent: 0, 
+    status: "active",
+    landmark: "",
+    pincode: "",
+    propertyType: "2BHK",
+    floorNumber: 0,
+    totalFloors: 0,
+    hasLift: false,
+    securityDeposit: 0,
+    maintenanceCharges: 0,
+    maintenancePaidBy: "tenant",
+    noticePeriod: 1,
+    lockInPeriod: 0,
+    electricityMeterType: "postpaid",
+    waterSupply: "",
+    powerBackup: "",
+    parkingDetails: "",
+    furnishingStatus: "unfurnished",
+    furnitureInventory: "",
+    preferredTenant: "no-preference",
+    foodPolicy: "",
+    petPolicy: "",
+    guestPolicy: "",
+    ownershipProofType: "",
+    societyNocRequired: false
+  };
+
   const {
     register,
     handleSubmit,
@@ -46,36 +77,7 @@ export default function Properties() {
     formState: { errors }
   } = useForm({
     mode: "onChange",
-    defaultValues: { 
-      name: "", 
-      address: "", 
-      units: 1, 
-      rent: 0, 
-      status: "active",
-      landmark: "",
-      pincode: "",
-      propertyType: "2BHK",
-      floorNumber: 0,
-      totalFloors: 0,
-      hasLift: false,
-      securityDeposit: 0,
-      maintenanceCharges: 0,
-      maintenancePaidBy: "tenant",
-      noticePeriod: 1,
-      lockInPeriod: 0,
-      electricityMeterType: "postpaid",
-      waterSupply: "",
-      powerBackup: "",
-      parkingDetails: "",
-      furnishingStatus: "unfurnished",
-      furnitureInventory: "",
-      preferredTenant: "no-preference",
-      foodPolicy: "",
-      petPolicy: "",
-      guestPolicy: "",
-      ownershipProofType: "",
-      societyNocRequired: false
-    }
+    defaultValues: initialValues
   });
 
   const refresh = async () => {
@@ -102,14 +104,7 @@ export default function Properties() {
 
   const onCancelEdit = () => {
     setEditingId(null);
-    reset({ 
-      name: "", address: "", units: 1, rent: 0, status: "active",
-      landmark: "", pincode: "", propertyType: "2BHK", floorNumber: 0, totalFloors: 0, hasLift: false,
-      securityDeposit: 0, maintenanceCharges: 0, maintenancePaidBy: "tenant", noticePeriod: 1, lockInPeriod: 0,
-      electricityMeterType: "postpaid", waterSupply: "", powerBackup: "", parkingDetails: "",
-      furnishingStatus: "unfurnished", furnitureInventory: "", preferredTenant: "no-preference",
-      foodPolicy: "", petPolicy: "", guestPolicy: "", ownershipProofType: "", societyNocRequired: false
-    });
+    reset(initialValues);
   };
 
   const onSubmit = async (values) => {
@@ -123,7 +118,7 @@ export default function Properties() {
         await propertiesApi.create(values);
         toast.success("Property created successfully");
       }
-      reset();
+      reset(initialValues);
       await refresh();
     } catch (err) {
       toast.error(err?.response?.data?.message || `Failed to ${editingId ? 'update' : 'create'} property`);

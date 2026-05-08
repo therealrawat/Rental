@@ -44,6 +44,34 @@ export default function Tenants() {
 
   const isLandlord = user?.role === "landlord";
 
+  const initialValues = {
+    propertyId: "",
+    name: "",
+    email: "",
+    phone: "",
+    leaseStart: "",
+    leaseEnd: "",
+    rentAmount: 0,
+    aadhaarNumber: "",
+    panNumber: "",
+    permanentAddress: "",
+    employmentType: "salaried",
+    companyName: "",
+    officeAddress: "",
+    officialEmail: "",
+    numOccupants: 1,
+    occupantsDetails: "",
+    maritalStatus: "",
+    foodPreference: "any",
+    vehicleDetails: "",
+    emergencyContact: "",
+    localContact: "",
+    policeVerificationConsent: false,
+    smokingAllowed: false,
+    drinkingAllowed: false,
+    petsAllowed: false
+  };
+
   const {
     register,
     handleSubmit,
@@ -51,33 +79,7 @@ export default function Tenants() {
     formState: { errors }
   } = useForm({
     mode: "onChange",
-    defaultValues: {
-      propertyId: "",
-      name: "",
-      email: "",
-      phone: "",
-      leaseStart: "",
-      leaseEnd: "",
-      rentAmount: 0,
-      aadhaarNumber: "",
-      panNumber: "",
-      permanentAddress: "",
-      employmentType: "salaried",
-      companyName: "",
-      officeAddress: "",
-      officialEmail: "",
-      numOccupants: 1,
-      occupantsDetails: "",
-      maritalStatus: "",
-      foodPreference: "any",
-      vehicleDetails: "",
-      emergencyContact: "",
-      localContact: "",
-      policeVerificationConsent: false,
-      smokingAllowed: false,
-      drinkingAllowed: false,
-      petsAllowed: false
-    }
+    defaultValues: initialValues
   });
 
   const refresh = async () => {
@@ -115,13 +117,7 @@ export default function Tenants() {
 
   const onCancelEdit = () => {
     setEditingId(null);
-    reset({
-      propertyId: "", name: "", email: "", phone: "", leaseStart: "", leaseEnd: "", rentAmount: 0,
-      aadhaarNumber: "", panNumber: "", permanentAddress: "", employmentType: "salaried",
-      companyName: "", officeAddress: "", officialEmail: "", numOccupants: 1, occupantsDetails: "",
-      maritalStatus: "", foodPreference: "any", vehicleDetails: "", emergencyContact: "", localContact: "",
-      policeVerificationConsent: false, smokingAllowed: false, drinkingAllowed: false, petsAllowed: false
-    });
+    reset(initialValues);
   };
 
   const onSubmit = async (values) => {
@@ -135,7 +131,7 @@ export default function Tenants() {
         const res = await tenantsApi.create(values);
         toast.success(res.message || "Tenant created successfully");
       }
-      reset();
+      reset(initialValues);
       await refresh();
     } catch (err) {
       toast.error(err?.response?.data?.message || `Failed to ${editingId ? 'update' : 'create'} tenant`);
