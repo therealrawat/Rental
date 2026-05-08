@@ -7,7 +7,9 @@ import {
   listTenants,
   updateTenant,
   joinLease,
-  permanentlyDeleteTenant
+  permanentlyDeleteTenant,
+  listDeletedTenants,
+  restoreTenant
 } from "../controllers/tenantController.js";
 import { requireAuth } from "../middleware/auth.js";
 import { validate } from "../validators/validate.js";
@@ -35,6 +37,8 @@ router.post(
   createTenant
 );
 
+router.get("/archived", listDeletedTenants);
+
 router.get("/:id", [param("id").isString().notEmpty()], validate, getTenant);
 
 router.put(
@@ -54,5 +58,6 @@ router.put(
 
 router.delete("/:id", [param("id").isString().notEmpty()], validate, deleteTenant);
 router.delete("/:id/permanent", [param("id").isString().notEmpty()], validate, permanentlyDeleteTenant);
+router.patch("/:id/restore", [param("id").isString().notEmpty()], validate, restoreTenant);
 
 export default router;

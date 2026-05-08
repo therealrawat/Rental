@@ -38,7 +38,9 @@ export const tenantsApi = {
   get: (id) => api.get(`/tenants/${id}`).then((r) => r.data),
   update: (id, payload) => api.put(`/tenants/${id}`, payload).then((r) => r.data),
   remove: (id) => api.delete(`/tenants/${id}`).then((r) => r.data),
-  removePermanent: (id) => api.delete(`/tenants/${id}/permanent`).then((r) => r.data)
+  removePermanent: (id) => api.delete(`/tenants/${id}/permanent`).then((r) => r.data),
+  listDeleted: () => api.get("/tenants/archived").then((r) => r.data),
+  restore: (id) => api.patch(`/tenants/${id}/restore`).then((r) => r.data)
 };
 
 export const paymentsApi = {

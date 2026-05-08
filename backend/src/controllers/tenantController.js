@@ -257,3 +257,47 @@ export async function permanentlyDeleteTenant(req, res, next) {
     return next(err);
   }
 }
+
+export async function listDeletedTenants(req, res, next) {
+  try {
+    if (req.user.role === "tenant") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const properties = await Property.find({ userId: req.user.id }).select("_id");
+    const propertyIds = properties.map((p) => p._id);
+
+    const tenants = await Tenant.find({ 
+      propertyId: { $in: propertyIds },
+      isDeleted: true
+    })
+      .sort({ updatedAt: -1 })
+      .populate("propertyId", "name address");
+
+    return res.json(tenants);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function restoreTenant(req, res, next) {
+  try {
+    if (req.user.role === "tenant") {
+      return res.status(403).json({ message: "Tenants cannot restore records" });
+    }
+
+    const tenant = await Tenant.findById(req.params.id).populate("propertyId", "userId");
+    if (!tenant) return res.status(404).json({ message: "Tenant not found" });
+    
+    if (String(tenant.propertyId.userId) !== String(req.user.id)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    tenant.isDeleted = false;
+    await tenant.save();
+
+    return res.json({ message: "Tenant restored successfully", tenant });
+  } catch (err) {
+    return next(err);
+  }
+}

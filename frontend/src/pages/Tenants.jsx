@@ -20,7 +20,9 @@ import {
   CheckCircle2,
   FileText,
   Trash2,
-  UserMinus
+  UserMinus,
+  ArchiveRestore,
+  ArchiveX
 } from "lucide-react";
 import { useTranslation } from "../context/LanguageContext.jsx";
 import TenantDocumentsModal from "../components/tenants/TenantDocumentsModal.jsx";
@@ -50,6 +52,9 @@ export default function Tenants() {
   const [editingId, setEditingId] = useState(null);
   const [selectedTenantForDocs, setSelectedTenantForDocs] = useState(null);
   const [confirmConfig, setConfirmConfig] = useState({ isOpen: false });
+  const [showArchive, setShowArchive] = useState(false);
+  const [archivedTenants, setArchivedTenants] = useState([]);
+  const [archiveLoading, setArchiveLoading] = useState(false);
 
   const isLandlord = user?.role === "landlord";
 
@@ -94,9 +99,9 @@ export default function Tenants() {
   const refresh = async () => {
     setLoading(true);
     try {
-      const [t, p] = await Promise.all([tenantsApi.list(), propertiesApi.list()]);
-      setTenants(t);
-      setProperties(p);
+      const [tenantData, propData] = await Promise.all([tenantsApi.list(), propertiesApi.list()]);
+      setTenants(tenantData);
+      setProperties(propData);
     } catch (err) {
       toast.error(err?.response?.data?.message || "Failed to load info");
     } finally {
@@ -104,9 +109,25 @@ export default function Tenants() {
     }
   };
 
+  const refreshArchive = async () => {
+    setArchiveLoading(true);
+    try {
+      const data = await tenantsApi.listDeleted();
+      setArchivedTenants(data);
+    } catch (err) {
+      toast.error("Failed to load archived tenants");
+    } finally {
+      setArchiveLoading(false);
+    }
+  };
+
   useEffect(() => {
-    if (isLandlord) refresh();
-    else setLoading(false);
+    if (isLandlord) {
+      refresh();
+      refreshArchive();
+    } else {
+      setLoading(false);
+    }
   }, [isLandlord]);
 
   const onEdit = (tenant) => {
@@ -193,6 +214,28 @@ export default function Tenants() {
     });
   };
 
+  const onRestore = (id, name) => {
+    setConfirmConfig({
+      isOpen: true,
+      title: `Restore "${name}"`,
+      message: "This will restore the tenant to your active list. Their account and data remain intact.",
+      confirmText: "Restore Tenant",
+      type: "info",
+      onConfirm: async () => {
+        setConfirmConfig(prev => ({ ...prev, loading: true }));
+        try {
+          await tenantsApi.restore(id);
+          toast.success("Tenant restored successfully");
+          await Promise.all([refresh(), refreshArchive()]);
+          setConfirmConfig({ isOpen: false });
+        } catch (err) {
+          toast.error("Failed to restore tenant");
+          setConfirmConfig(prev => ({ ...prev, loading: false }));
+        }
+      }
+    });
+  };
+
   if (!isLandlord) {
     return (
       <div className="max-w-4xl mx-auto text-center mt-20">
@@ -209,7 +252,68 @@ export default function Tenants() {
           <h1 className="text-2xl font-bold text-gray-900">{t('tenants')}</h1>
           <p className="text-sm text-gray-600">{t('leaseOverview')}</p>
         </div>
+        {archivedTenants.length > 0 && (
+          <button
+            onClick={() => { setShowArchive(v => !v); if (!showArchive) refreshArchive(); }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+              showArchive
+                ? 'bg-amber-600 text-white border-amber-600 shadow-lg shadow-amber-200'
+                : 'bg-white text-amber-600 border-amber-200 hover:bg-amber-50'
+            }`}
+          >
+            <ArchiveX size={14} />
+            {showArchive ? 'Hide Archive' : `Recycle Bin (${archivedTenants.length})`}
+          </button>
+        )}
       </div>
+
+      {/* Recycle Bin Panel */}
+      {showArchive && (
+        <div className="rounded-2xl border-2 border-dashed border-amber-200 bg-amber-50/30 overflow-hidden">
+          <div className="p-4 border-b border-amber-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ArchiveX size={16} className="text-amber-600" />
+              <span className="text-sm font-bold text-amber-700">Archived Tenants (Recycle Bin)</span>
+            </div>
+            <span className="text-[10px] text-amber-500 font-medium">These tenants are hidden but not deleted</span>
+          </div>
+          <div className="divide-y divide-amber-100">
+            {archiveLoading ? (
+              <div className="p-6 text-center text-sm text-amber-500">Loading...</div>
+            ) : archivedTenants.length === 0 ? (
+              <div className="p-6 text-center text-sm text-amber-500 italic">No archived tenants.</div>
+            ) : (
+              archivedTenants.map(tenant => (
+                <div key={tenant._id} className="p-4 flex items-center justify-between gap-4">
+                  <div>
+                    <div className="font-bold text-gray-700 text-sm">{tenant.name}</div>
+                    <div className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                      <MapPin size={10} /> {tenant.propertyId?.name || 'No Property'}
+                      <span className="mx-1">·</span>
+                      <span>₹{Number(tenant.rentAmount).toLocaleString()}/mo</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => onRestore(tenant._id, tenant.name)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white text-[10px] font-bold rounded-lg hover:bg-emerald-700 transition-all shadow-sm"
+                    >
+                      <ArchiveRestore size={12} /> Restore
+                    </button>
+                    <button
+                      onClick={() => onRemovePermanent(tenant._id)}
+                      className="p-1.5 text-rose-500 hover:bg-rose-100 rounded-lg transition-colors"
+                      title="Delete Permanently"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-5 items-start">
         {/* Form Column */}
