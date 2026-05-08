@@ -6,8 +6,10 @@ const paymentSchema = new mongoose.Schema(
     propertyId: { type: mongoose.Schema.Types.ObjectId, ref: "Property", required: true, index: true },
     landlordId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
     amount: { type: Number, required: true },
-    month: { type: Number, required: true }, // 1-12
-    year: { type: Number, required: true },
+    paidMonths: [{
+      month: { type: Number, required: true }, // 1-12
+      year: { type: Number, required: true }
+    }],
     paymentDate: { type: Date, default: Date.now },
     paymentMethod: { type: String, enum: ["UPI", "Bank Transfer", "Cash", "Other"], default: "UPI" },
     transactionId: { type: String, trim: true },

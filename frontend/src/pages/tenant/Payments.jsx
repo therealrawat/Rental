@@ -12,7 +12,8 @@ import {
   Wallet, 
   AlertCircle,
   X,
-  Plus
+  Plus,
+  CalendarCheck
 } from "lucide-react";
 import Button from "../../components/common/Button.jsx";
 import Input from "../../components/common/Input.jsx";
@@ -24,6 +25,7 @@ export default function Payments() {
   const [loading, setLoading] = useState(true);
   const [showPayModal, setShowPayModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedMonths, setSelectedMonths] = useState([]);
 
   const fetchPaymentData = async () => {
     try {
@@ -44,14 +46,42 @@ export default function Payments() {
     fetchPaymentData();
   }, []);
 
+  const getMonthYearOptions = () => {
+    const options = [];
+    const date = new Date();
+    // Show 2 months back and 6 months forward
+    date.setMonth(date.getMonth() - 2);
+    for (let i = 0; i < 9; i++) {
+      options.push({
+        month: date.getMonth() + 1,
+        year: date.getFullYear(),
+        label: date.toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
+      });
+      date.setMonth(date.getMonth() + 1);
+    }
+    return options;
+  };
+
+  const toggleMonth = (m) => {
+    const exists = selectedMonths.find(sm => sm.month === m.month && sm.year === m.year);
+    if (exists) {
+      setSelectedMonths(selectedMonths.filter(sm => !(sm.month === m.month && sm.year === m.year)));
+    } else {
+      setSelectedMonths([...selectedMonths, m]);
+    }
+  };
+
   const handlePay = async (e) => {
     e.preventDefault();
+    if (selectedMonths.length === 0) {
+      return toast.error("Please select at least one month");
+    }
+    
     setSubmitting(true);
     const formData = new FormData(e.target);
     const payload = {
       amount: formData.get("amount"),
-      month: new Date().getMonth() + 1,
-      year: new Date().getFullYear(),
+      paidMonths: selectedMonths,
       paymentMethod: formData.get("method"),
       transactionId: formData.get("txnId"),
       notes: formData.get("notes")
@@ -61,6 +91,7 @@ export default function Payments() {
       await paymentsApi.create(payload);
       toast.success("Payment submitted for approval");
       setShowPayModal(false);
+      setSelectedMonths([]);
       fetchPaymentData();
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to submit payment");
@@ -101,7 +132,7 @@ export default function Payments() {
             <div className="relative z-10">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">Current Month Due</p>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">Monthly Rent</p>
                   <p className="text-5xl font-black mt-3 tracking-tighter">₹ {Number(lease?.rentAmount || 0).toLocaleString()}</p>
                 </div>
                 {isPaymentWindow ? (
@@ -141,7 +172,7 @@ export default function Payments() {
           <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-10 py-8 border-b border-gray-50 flex justify-between items-center">
               <h3 className="font-bold text-gray-900 text-lg">Transaction Ledger</h3>
-              <Button variant="ghost" size="sm" className="text-indigo-600 text-xs font-black uppercase tracking-widest">Filter by Year</Button>
+              <Button variant="ghost" size="sm" className="text-indigo-600 text-xs font-black uppercase tracking-widest">History</Button>
             </div>
             <div className="overflow-x-auto">
               {payments.length === 0 ? (
@@ -154,7 +185,7 @@ export default function Payments() {
                   <thead>
                     <tr className="bg-gray-50/50">
                       <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Reference / Period</th>
-                      <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Method</th>
+                      <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Paid For</th>
                       <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Amount</th>
                       <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Status</th>
                     </tr>
@@ -164,12 +195,17 @@ export default function Payments() {
                       <tr key={pay._id} className="hover:bg-gray-50/30 transition-colors">
                         <td className="px-10 py-6">
                           <p className="text-sm font-bold text-gray-900">{pay.transactionId || 'CASH_REC'}</p>
-                          <p className="text-[10px] text-gray-500 font-medium uppercase mt-0.5">{new Date(pay.paymentDate).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</p>
+                          <p className="text-[10px] text-gray-500 font-medium uppercase mt-0.5">{new Date(pay.paymentDate).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}</p>
                         </td>
                         <td className="px-10 py-6">
-                          <div className="flex items-center gap-2">
-                            <Wallet size={14} className="text-gray-400" />
-                            <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">{pay.paymentMethod}</span>
+                          <div className="flex flex-wrap gap-1">
+                            {pay.paidMonths?.map((m, idx) => (
+                              <span key={idx} className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider">
+                                {new Date(m.year, m.month - 1).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
+                              </span>
+                            )) || (
+                              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Single Month</span>
+                            )}
                           </div>
                         </td>
                         <td className="px-10 py-6 text-sm font-black text-gray-900">₹ {Number(pay.amount).toLocaleString()}</td>
@@ -202,17 +238,16 @@ export default function Payments() {
             </h3>
             <div className="space-y-6">
               <div className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100">
-                <p className="text-xs font-bold text-indigo-900">1st - 5th Monthly Window</p>
+                <p className="text-xs font-bold text-indigo-900">Multi-Month Payments</p>
                 <p className="text-[10px] text-indigo-700 mt-1 leading-relaxed">
-                  Rent should be recorded between the 1st and 5th of each month. 
-                  Landlord approval may take 24-48 hours.
+                  You can now pay for multiple months in advance. Simply select the months during recording.
                 </p>
               </div>
               <ul className="space-y-4">
                 {[
-                  { label: 'UPI/Online', val: 'Instant Record' },
-                  { label: 'Cash', val: 'Manual Approval' },
-                  { label: 'Late Fee', val: 'Applicable after 10th' }
+                  { label: 'Billing', val: 'Monthly' },
+                  { label: 'Security', val: 'Held' },
+                  { label: 'Approval', val: 'Manual' }
                 ].map((item, i) => (
                   <li key={i} className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-gray-400">
                     <span>{item.label}</span>
@@ -230,7 +265,7 @@ export default function Payments() {
             </h3>
             <p className="text-xs text-amber-100 mb-6">Fully refundable security amount held by your landlord.</p>
             <div className="flex items-center justify-between p-4 bg-white/10 rounded-2xl border border-white/10">
-              <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Status</span>
+              <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Amount</span>
               <span className="text-xl font-black">₹ {Number(lease?.propertyId?.securityDeposit || 0).toLocaleString()}</span>
             </div>
           </div>
@@ -240,11 +275,11 @@ export default function Payments() {
       {/* Payment Record Modal */}
       {showPayModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="px-10 py-8 border-b flex justify-between items-center">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="px-10 py-8 border-b flex justify-between items-center bg-gray-50/50">
               <div>
                 <h3 className="text-xl font-bold text-gray-900">Record Payment</h3>
-                <p className="text-xs text-gray-500 mt-1">Submit details for landlord approval.</p>
+                <p className="text-xs text-gray-500 mt-1">Select months and enter transaction details.</p>
               </div>
               <button onClick={() => setShowPayModal(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
                 <X size={24} />
@@ -252,40 +287,65 @@ export default function Payments() {
             </div>
             
             <form onSubmit={handlePay} className="p-10 space-y-6">
-              <Input 
-                label="Amount Paid" 
-                name="amount" 
-                type="number" 
-                defaultValue={lease?.rentAmount} 
-                required 
-              />
-              
-              <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Payment Method</label>
-                <select name="method" className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
-                  <option value="UPI">UPI / GPay / PhonePe</option>
-                  <option value="Bank Transfer">Bank Transfer (IMPS/NEFT)</option>
-                  <option value="Cash">Cash Payment</option>
-                  <option value="Other">Other</option>
-                </select>
+              <div className="grid gap-6 md:grid-cols-2">
+                <Input 
+                  label="Amount Paid" 
+                  name="amount" 
+                  type="number" 
+                  defaultValue={selectedMonths.length * (lease?.rentAmount || 0)} 
+                  required 
+                />
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Payment Method</label>
+                  <select name="method" className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                    <option value="UPI">UPI / GPay / PhonePe</option>
+                    <option value="Bank Transfer">Bank Transfer (IMPS/NEFT)</option>
+                    <option value="Cash">Cash Payment</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
               </div>
 
-              <Input 
-                label="Transaction ID / Reference" 
-                name="txnId" 
-                placeholder="UTR Number or Receipt Ref" 
-              />
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Select Months Covered</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {getMonthYearOptions().map((opt, i) => {
+                    const isSelected = selectedMonths.find(sm => sm.month === opt.month && sm.year === opt.year);
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => toggleMonth(opt)}
+                        className={`p-3 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
+                          isSelected 
+                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100' 
+                            : 'bg-white text-gray-600 border-gray-100 hover:bg-gray-50'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-              <Input 
-                label="Notes (Optional)" 
-                name="notes" 
-                placeholder="Mention any adjustments" 
-              />
+              <div className="grid gap-6 md:grid-cols-2">
+                <Input 
+                  label="Transaction ID / Ref" 
+                  name="txnId" 
+                  placeholder="UTR Number" 
+                />
+                <Input 
+                  label="Notes (Optional)" 
+                  name="notes" 
+                  placeholder="Any adjustments" 
+                />
+              </div>
 
               <Button 
                 type="submit" 
                 disabled={submitting}
-                className="w-full bg-indigo-600 text-white py-4 font-black uppercase tracking-[0.2em] shadow-xl shadow-indigo-100 mt-4"
+                className="w-full bg-indigo-600 text-white py-4 font-black uppercase tracking-[0.2em] shadow-xl shadow-indigo-100 mt-4 rounded-2xl hover:bg-indigo-700"
               >
                 {submitting ? "Submitting..." : "Submit for Approval"}
               </Button>

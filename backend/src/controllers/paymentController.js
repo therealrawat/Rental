@@ -4,34 +4,32 @@ import { Notification } from "../models/Notification.js";
 
 export const createPayment = async (req, res) => {
   try {
-    const { amount, month, year, paymentMethod, transactionId, notes } = req.body;
+    const { amount, paidMonths, paymentMethod, transactionId, notes } = req.body;
 
     // Find tenant by userId
     const tenant = await Tenant.findOne({ userId: req.user.id }).populate("propertyId");
     if (!tenant) return res.status(404).json({ message: "Tenant record not found" });
-
-    const day = new Date().getDate();
-    // Restriction: Payment usually 1-5 of the month (optional but can be enforced or just warned)
-    // For now, let's just create it.
 
     const payment = await Payment.create({
       tenantId: tenant._id,
       propertyId: tenant.propertyId._id,
       landlordId: tenant.propertyId.userId,
       amount,
-      month,
-      year,
+      paidMonths, // Expecting array: [{month, year}]
       paymentMethod,
       transactionId,
       notes,
       status: "pending"
     });
 
+    // Format months for notification
+    const monthsStr = paidMonths.map(m => `${m.month}/${m.year}`).join(", ");
+
     // Notify Landlord
     await Notification.create({
       userId: tenant.propertyId.userId,
       title: "Rent Payment Received",
-      message: `Tenant ${tenant.name} has submitted a payment of ₹${amount} for ${month}/${year}. Please approve it.`,
+      message: `Tenant ${tenant.name} submitted ₹${amount} for [${monthsStr}].`,
       type: "payment_received",
       link: "/finance"
     });
@@ -80,13 +78,15 @@ export const approvePayment = async (req, res) => {
     payment.status = status;
     await payment.save();
 
+    const monthsStr = payment.paidMonths.map(m => `${m.month}/${m.year}`).join(", ");
+
     // Notify Tenant
     await Notification.create({
       userId: payment.tenantId.userId,
       title: status === "approved" ? "Payment Approved" : "Payment Rejected",
       message: status === "approved" 
-        ? `Your rent payment of ₹${payment.amount} for ${payment.month}/${payment.year} has been approved.`
-        : `Your rent payment of ₹${payment.amount} for ${payment.month}/${payment.year} was rejected. Reason: ${req.body.reason || 'Check with landlord'}.`,
+        ? `Your rent payment of ₹${payment.amount} for [${monthsStr}] has been approved.`
+        : `Your rent payment of ₹${payment.amount} for [${monthsStr}] was rejected.`,
       type: "payment_approved",
       link: "/payments"
     });

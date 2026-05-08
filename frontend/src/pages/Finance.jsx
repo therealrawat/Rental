@@ -134,7 +134,7 @@ export default function Finance() {
               <thead>
                 <tr className="bg-gray-50/50">
                   <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Tenant / Property</th>
-                  <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Reference</th>
+                  <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Reference / Months</th>
                   <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Amount</th>
                   <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Method</th>
                   <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
@@ -149,8 +149,16 @@ export default function Finance() {
                       <p className="text-[10px] text-gray-500 font-medium uppercase mt-0.5">{pay.propertyId?.name}</p>
                     </td>
                     <td className="px-10 py-6">
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{pay.transactionId || 'CASH'}</p>
-                      <p className="text-[10px] text-gray-500 mt-0.5">{new Date(pay.paymentDate).toLocaleDateString()}</p>
+                      <div className="flex flex-wrap gap-1 max-w-[150px]">
+                        {pay.paidMonths?.map((m, idx) => (
+                          <span key={idx} className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider">
+                            {new Date(m.year, m.month - 1).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
+                          </span>
+                        ))}
+                        {(!pay.paidMonths || pay.paidMonths.length === 0) && (
+                           <p className="text-[10px] text-gray-500">{new Date(pay.paymentDate).toLocaleDateString()}</p>
+                        )}
+                      </div>
                     </td>
                     <td className="px-10 py-6 text-sm font-black text-gray-900">₹ {Number(pay.amount).toLocaleString()}</td>
                     <td className="px-10 py-6">
