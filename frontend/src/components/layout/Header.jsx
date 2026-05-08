@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { Search, Bell, Menu, LogOut, User, ChevronDown, CheckCircle2, Clock, X, Globe } from "lucide-react";
+import { Bell, Menu, LogOut, User, ChevronDown, CheckCircle2, Clock, X, Globe } from "lucide-react";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useTranslation } from "../../context/LanguageContext.jsx";
 import { notificationsApi } from "../../services/api.js";
@@ -87,17 +87,6 @@ export default function Header({ onToggleMobileNav, onToggleSidebar }) {
       </div>
 
       <div className="flex items-center gap-4 sm:gap-6">
-        <div className="relative hidden sm:block">
-          <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-            <Search size={18} />
-          </span>
-          <input
-            type="text"
-            className="block w-48 lg:w-64 pl-10 pr-3 py-2 bg-gray-100 border-transparent rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:bg-white focus:ring-1 focus:ring-emerald-500 transition-all"
-            placeholder={t('search') + "..."}
-          />
-        </div>
-
         {/* Language Toggle */}
         <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl">
           <button 

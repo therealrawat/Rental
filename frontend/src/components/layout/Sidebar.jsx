@@ -1,7 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { 
   LayoutDashboard, 
-  Plus, 
   Users, 
   Home, 
   FileText, 
@@ -52,13 +51,6 @@ export default function Sidebar({ isOpen = true, isExpanded = false }) {
         <Cloud size={32} className="sidebar-logo-icon" />
         {isExpanded && <span className="sidebar-app-name">LandLord App</span>}
       </div>
-
-      {user?.role === "landlord" && (
-        <button className="quick-add-btn" title="Quick Add">
-          <Plus size={24} />
-          {isExpanded && <span className="ml-3 font-medium">Quick Add</span>}
-        </button>
-      )}
 
       <nav className="flex flex-col w-full px-4 mt-4 space-y-1">
         {navLinks.map((link) => (
