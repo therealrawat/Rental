@@ -17,8 +17,10 @@ import {
   Phone, 
   MapPin, 
   Info,
-  CheckCircle2
+  CheckCircle2,
+  FileText
 } from "lucide-react";
+import TenantDocumentsModal from "../components/tenants/TenantDocumentsModal.jsx";
 
 function FormSection({ title, icon: Icon, children }) {
   return (
@@ -41,6 +43,7 @@ export default function Tenants() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [selectedTenantForDocs, setSelectedTenantForDocs] = useState(null);
 
   const isLandlord = user?.role === "landlord";
 
@@ -348,6 +351,15 @@ export default function Tenants() {
                       >
                         Edit Details
                       </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-7 px-2 text-[10px] border border-emerald-100 text-emerald-600 hover:bg-emerald-50"
+                        onClick={() => setSelectedTenantForDocs(t)}
+                      >
+                        <FileText size={12} className="mr-1" />
+                        Docs
+                      </Button>
                     </div>
                   </div>
                 ))
@@ -356,6 +368,13 @@ export default function Tenants() {
           </div>
         </div>
       </div>
+
+      {selectedTenantForDocs && (
+        <TenantDocumentsModal 
+          tenant={selectedTenantForDocs} 
+          onClose={() => setSelectedTenantForDocs(null)} 
+        />
+      )}
     </div>
   );
 }

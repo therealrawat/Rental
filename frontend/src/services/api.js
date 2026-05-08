@@ -50,6 +50,7 @@ export const notificationsApi = {
 
 export const documentsApi = {
   list: () => api.get("/documents").then((r) => r.data),
+  listByTenant: (tenantId) => api.get(`/documents/tenant/${tenantId}`).then((r) => r.data),
   upload: (formData) => api.post("/documents/upload", formData, {
     headers: { "Content-Type": "multipart/form-data" }
   }).then((r) => r.data),

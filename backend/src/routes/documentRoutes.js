@@ -17,8 +17,49 @@ router.get("/", requireAuth, async (req, res) => {
     }
 
     const documents = await Document.find({ tenant: tenant._id }).sort({ createdAt: -1 });
-    res.json(documents);
+    
+    // Generate signed URLs for tenants
+    const docsWithSignedUrls = await Promise.all(documents.map(async (doc) => {
+      const { data } = await supabase.storage
+        .from("tenant-documents")
+        .createSignedUrl(doc.storageKey, 3600);
+      
+      const docObj = doc.toObject();
+      if (data?.signedUrl) docObj.url = data.signedUrl;
+      return docObj;
+    }));
+
+    res.json(docsWithSignedUrls);
   } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get documents for a specific tenant (for landlords) - now generates signed URLs
+router.get("/tenant/:tenantId", requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== "landlord") {
+      return res.status(403).json({ message: "Only landlords can access this" });
+    }
+
+    const documents = await Document.find({ tenant: req.params.tenantId }).sort({ createdAt: -1 });
+    
+    // Generate signed URLs for landlords to ensure they can ALWAYS view/download
+    const docsWithSignedUrls = await Promise.all(documents.map(async (doc) => {
+      const { data, error } = await supabase.storage
+        .from("tenant-documents")
+        .createSignedUrl(doc.storageKey, 3600); // 1 hour expiry
+      
+      const docObj = doc.toObject();
+      if (data?.signedUrl) {
+        docObj.url = data.signedUrl;
+      }
+      return docObj;
+    }));
+
+    res.json(docsWithSignedUrls);
+  } catch (error) {
+    console.error("Landlord doc fetch error:", error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -92,8 +133,8 @@ router.delete("/:id", requireAuth, async (req, res) => {
       return res.status(404).json({ message: "Document not found" });
     }
 
-    // Check if user owns the document
-    if (document.user.toString() !== req.user.id && req.user.role !== "admin") {
+    // Check if user owns the document or is a landlord
+    if (document.user.toString() !== req.user.id && req.user.role !== "landlord") {
       return res.status(403).json({ message: "Not authorized" });
     }
 
