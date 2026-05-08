@@ -54,5 +54,6 @@ export const documentsApi = {
   upload: (formData) => api.post("/documents/upload", formData, {
     headers: { "Content-Type": "multipart/form-data" }
   }).then((r) => r.data),
+  updateStatus: (id, payload) => api.patch(`/documents/${id}/status`, payload).then((r) => r.data),
   remove: (id) => api.delete(`/documents/${id}`).then((r) => r.data)
 };

@@ -156,4 +156,32 @@ router.delete("/:id", requireAuth, async (req, res) => {
   }
 });
 
+// Update document status (for landlords)
+router.patch("/:id/status", requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== "landlord") {
+      return res.status(403).json({ message: "Only landlords can verify documents" });
+    }
+
+    const { status, remarks } = req.body;
+    if (!["verified", "rejected", "pending"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    const document = await Document.findByIdAndUpdate(
+      req.params.id,
+      { status, remarks },
+      { new: true }
+    );
+
+    if (!document) {
+      return res.status(404).json({ message: "Document not found" });
+    }
+
+    res.json(document);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 export default router;
