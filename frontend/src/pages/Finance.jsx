@@ -13,8 +13,10 @@ import {
   AlertCircle
 } from "lucide-react";
 import Button from "../components/common/Button.jsx";
+import { useTranslation } from "../context/LanguageContext.jsx";
 
 export default function Finance() {
+  const { t } = useTranslation();
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
@@ -63,8 +65,8 @@ export default function Finance() {
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Financial Oversight</h1>
-          <p className="text-gray-500 mt-2 font-medium">Manage rent approvals, income tracking, and payment verification.</p>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{t('finance')}</h1>
+          <p className="text-gray-500 mt-2 font-medium">{t('portfolioOverview')}</p>
         </div>
         <div className="flex gap-2 p-1 bg-gray-100 rounded-2xl">
           {['all', 'pending', 'approved'].map((s) => (
@@ -83,7 +85,7 @@ export default function Finance() {
 
       <div className="grid md:grid-cols-3 gap-6">
         <div className="bg-gray-900 rounded-[2rem] p-8 text-white shadow-xl">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Total Revenue Collected</p>
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">{t('totalRevenue')}</p>
           <div className="flex items-end justify-between">
             <p className="text-3xl font-black">₹ {stats.total.toLocaleString()}</p>
             <div className="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400">
@@ -92,7 +94,7 @@ export default function Finance() {
           </div>
         </div>
         <div className="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Pending Verifications</p>
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">{t('pendingVerifications')}</p>
           <div className="flex items-end justify-between">
             <p className="text-3xl font-black text-amber-600">{stats.pending}</p>
             <div className="w-10 h-10 bg-amber-50 rounded-full flex items-center justify-center text-amber-600">
@@ -101,7 +103,7 @@ export default function Finance() {
           </div>
         </div>
         <div className="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Awaiting Approval Amt</p>
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">{t('awaitingApproval')}</p>
           <div className="flex items-end justify-between">
             <p className="text-3xl font-black text-indigo-600">₹ {stats.recent.toLocaleString()}</p>
             <div className="w-10 h-10 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600">
@@ -118,7 +120,7 @@ export default function Finance() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
             <input 
               type="text" 
-              placeholder="Search by tenant..." 
+              placeholder={t('searchTenant')} 
               className="pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-emerald-500 transition-all w-64"
             />
           </div>
@@ -133,12 +135,12 @@ export default function Finance() {
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-gray-50/50">
-                  <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Tenant / Property</th>
-                  <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Reference / Months</th>
-                  <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Amount</th>
-                  <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Method</th>
-                  <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
-                  <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
+                  <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('tenants')} / {t('properties')}</th>
+                  <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('reference')} / {t('payments')}</th>
+                  <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('amountPaid')}</th>
+                  <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('paymentMethod')}</th>
+                  <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('status')}</th>
+                  <th className="px-10 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{t('edit')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">

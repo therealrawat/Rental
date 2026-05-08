@@ -20,6 +20,7 @@ import {
   CheckCircle2,
   FileText
 } from "lucide-react";
+import { useTranslation } from "../context/LanguageContext.jsx";
 import TenantDocumentsModal from "../components/tenants/TenantDocumentsModal.jsx";
 
 function FormSection({ title, icon: Icon, children }) {
@@ -38,6 +39,7 @@ function FormSection({ title, icon: Icon, children }) {
 
 export default function Tenants() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [tenants, setTenants] = useState([]);
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -156,8 +158,8 @@ export default function Tenants() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Tenants</h1>
-          <p className="text-sm text-gray-600">Comprehensive management of your rental residents.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('tenants')}</h1>
+          <p className="text-sm text-gray-600">{t('leaseOverview')}</p>
         </div>
       </div>
 
@@ -166,10 +168,10 @@ export default function Tenants() {
         <div className="lg:col-span-3 rounded-2xl border bg-white shadow-sm overflow-hidden">
           <div className="bg-gray-50/50 p-5 border-b flex items-center justify-between">
             <div className="text-sm font-bold text-gray-900 uppercase tracking-tight">
-              {editingId ? "Edit Tenant Profile" : "New Tenant Registration"}
+              {editingId ? t('editTenant') : t('addTenant')}
             </div>
             <div className={`text-[10px] font-medium px-2 py-1 rounded ${editingId ? 'bg-amber-50 text-amber-600' : 'bg-indigo-50 text-indigo-600'}`}>
-              {editingId ? 'Edit Mode' : 'V2 Registration Form'}
+              {editingId ? t('edit') : t('finance')}
             </div>
           </div>
           
@@ -191,7 +193,7 @@ export default function Tenants() {
                   ].join(" ")}
                   {...register("propertyId", { required: "Property is required" })}
                 >
-                  <option value="">Select a property</option>
+                  <option value="">{t('searchTenant')}</option>
                   {properties.map((p) => (
                     <option key={p._id} value={p._id}>{p.name}</option>
                   ))}
@@ -199,18 +201,18 @@ export default function Tenants() {
                 {errors.propertyId && <div className="mt-1 text-xs text-red-600">{errors.propertyId.message}</div>}
               </label>
 
-              <Input label="Monthly Rent (₹)" type="text" error={errors.rentAmount?.message} {...register("rentAmount", validators.amount)} />
+              <Input label={t('rentAmount')} type="text" error={errors.rentAmount?.message} {...register("rentAmount", validators.amount)} />
               
-              <Input label="Lease Start" type="date" error={errors.leaseStart?.message} {...register("leaseStart", { required: "Required" })} />
-              <Input label="Lease End" type="date" error={errors.leaseEnd?.message} {...register("leaseEnd", { required: "Required" })} />
+              <Input label={t('leaseStart')} type="date" error={errors.leaseStart?.message} {...register("leaseStart", { required: "Required" })} />
+              <Input label={t('leaseEnd')} type="date" error={errors.leaseEnd?.message} {...register("leaseEnd", { required: "Required" })} />
             </FormSection>
 
-            <FormSection title="2. Identity & KYCs" icon={ShieldCheck}>
-              <Input label="Full Name" maxLength={50} error={errors.name?.message} {...register("name", validators.name)} />
-              <Input label="Email Address" error={errors.email?.message} {...register("email", validators.email)} />
-              <Input label="Phone Number" maxLength={10} error={errors.phone?.message} {...register("phone", validators.phone)} />
-              <Input label="Aadhaar Number" maxLength={12} placeholder="12-digit UID" error={errors.aadhaarNumber?.message} {...register("aadhaarNumber", validators.aadhaar)} />
-              <Input label="PAN Card Number" maxLength={10} placeholder="ABCDE1234F" error={errors.panNumber?.message} {...register("panNumber", validators.pan)} />
+            <FormSection title={t('tenants')} icon={ShieldCheck}>
+              <Input label={t('tenantName')} maxLength={50} error={errors.name?.message} {...register("name", validators.name)} />
+              <Input label={t('email')} error={errors.email?.message} {...register("email", validators.email)} />
+              <Input label={t('phone')} maxLength={10} error={errors.phone?.message} {...register("phone", validators.phone)} />
+              <Input label={t('aadhaarNumber')} maxLength={12} placeholder="12-digit UID" error={errors.aadhaarNumber?.message} {...register("aadhaarNumber", validators.aadhaar)} />
+              <Input label={t('panNumber')} maxLength={10} placeholder="ABCDE1234F" error={errors.panNumber?.message} {...register("panNumber", validators.pan)} />
               <div className="md:col-span-2">
                 <Input label="Permanent (Hometown) Address" maxLength={200} placeholder="As per Aadhaar" error={errors.permanentAddress?.message} {...register("permanentAddress", { maxLength: { value: 200, message: "Max 200 characters" } })} />
               </div>
@@ -285,7 +287,7 @@ export default function Tenants() {
             <div className="mt-10 pt-6 border-t flex gap-3">
               {editingId && (
                 <Button variant="ghost" className="flex-1 border" onClick={onCancelEdit} type="button">
-                  Cancel
+                  {t('cancel')}
                 </Button>
               )}
               <Button 
@@ -293,7 +295,7 @@ export default function Tenants() {
                 disabled={processing} 
                 type="submit"
               >
-                {processing ? "Processing..." : editingId ? "Update Tenant Profile" : "Complete Tenant Registration"}
+                {processing ? "Processing..." : editingId ? t('editTenant') : t('addTenant')}
               </Button>
             </div>
           </form>

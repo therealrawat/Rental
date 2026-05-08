@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { Search, Bell, Menu, LogOut, User, ChevronDown, CheckCircle2, Clock, X } from "lucide-react";
+import { Search, Bell, Menu, LogOut, User, ChevronDown, CheckCircle2, Clock, X, Globe } from "lucide-react";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useTranslation } from "../../context/LanguageContext.jsx";
 import { notificationsApi } from "../../services/api.js";
 
 export default function Header({ onToggleMobileNav, onToggleSidebar }) {
@@ -62,6 +63,8 @@ export default function Header({ onToggleMobileNav, onToggleSidebar }) {
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
+  const { lang, setLang, t } = useTranslation();
+
   return (
     <header className="header-container">
       <div className="flex items-center gap-4">
@@ -91,8 +94,24 @@ export default function Header({ onToggleMobileNav, onToggleSidebar }) {
           <input
             type="text"
             className="block w-48 lg:w-64 pl-10 pr-3 py-2 bg-gray-100 border-transparent rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:bg-white focus:ring-1 focus:ring-emerald-500 transition-all"
-            placeholder="Search here..."
+            placeholder={t('search') + "..."}
           />
+        </div>
+
+        {/* Language Toggle */}
+        <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl">
+          <button 
+            onClick={() => setLang('en')}
+            className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${lang === 'en' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            EN
+          </button>
+          <button 
+            onClick={() => setLang('hi')}
+            className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${lang === 'hi' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            हिन्दी
+          </button>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">

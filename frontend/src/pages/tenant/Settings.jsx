@@ -5,10 +5,12 @@ import toast from "react-hot-toast";
 import Button from "../../components/common/Button.jsx";
 import Input from "../../components/common/Input.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useTranslation } from "../../context/LanguageContext.jsx";
 import { authApi } from "../../services/api.js";
 
 export default function Settings() {
   const { user, updateUser, logout } = useAuth();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('profile');
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -76,17 +78,17 @@ export default function Settings() {
   };
 
   const tabs = [
-    { id: 'profile', label: 'Profile Information', icon: User },
-    { id: 'security', label: 'Security & Password', icon: Shield },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'billing', label: 'Payment Methods', icon: CreditCard },
+    { id: 'profile', label: t('profileInfo') || 'Profile Information', icon: User },
+    { id: 'security', label: t('security') || 'Security', icon: Shield },
+    { id: 'notifications', label: t('notifications') || 'Notifications', icon: Bell },
+    { id: 'billing', label: t('payments') || 'Payments', icon: CreditCard },
   ];
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-10">
       <div>
-        <h1 className="text-4xl font-black text-gray-900 tracking-tight">Settings</h1>
-        <p className="text-gray-500 mt-2 text-lg">Personalize your experience and manage security.</p>
+        <h1 className="text-4xl font-black text-gray-900 tracking-tight">{t('settings')}</h1>
+        <p className="text-gray-500 mt-2 text-lg">{t('portfolioOverview')}</p>
       </div>
 
       <div className="grid gap-10 lg:grid-cols-4">
@@ -119,7 +121,7 @@ export default function Settings() {
         <div className="lg:col-span-3">
           {activeTab === 'profile' && (
             <div className="bg-white rounded-[2.5rem] border border-gray-100 p-10 shadow-sm animate-in fade-in slide-in-from-right-4 duration-500">
-              <h3 className="text-xl font-black text-gray-900 mb-10">Personal Information</h3>
+              <h3 className="text-xl font-black text-gray-900 mb-10">{t('profileInfo')}</h3>
               
               <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-12 bg-gray-50/50 p-8 rounded-[2rem] border border-gray-50">
                 <div className="relative shrink-0">
@@ -153,12 +155,12 @@ export default function Settings() {
               <form onSubmit={handleProfileSubmit(onUpdateProfile)} className="space-y-8">
                 <div className="grid gap-6 md:grid-cols-2">
                   <Input 
-                    label="Full Name" 
+                    label={t('tenantName')} 
                     {...regProfile("name", { required: true })} 
                     className="rounded-2xl"
                   />
                   <Input 
-                    label="Email Address" 
+                    label={t('email')} 
                     {...regProfile("email")} 
                     disabled 
                     className="bg-gray-50 cursor-not-allowed rounded-2xl border-gray-100 text-gray-400" 
@@ -170,7 +172,7 @@ export default function Settings() {
                     disabled={isSaving}
                     className="bg-gray-900 text-white px-12 py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-gray-800 hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-gray-900/30"
                   >
-                    {isSaving ? "Saving..." : "Update Profile"}
+                    {isSaving ? "Saving..." : t('save')}
                   </Button>
                 </div>
               </form>

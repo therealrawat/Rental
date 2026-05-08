@@ -14,9 +14,9 @@ import {
   Gavel, 
   FileCheck,
   Info,
-  CheckCircle2,
   ArrowRight
 } from "lucide-react";
+import { useTranslation } from "../context/LanguageContext.jsx";
 
 function FormSection({ title, icon: Icon, children }) {
   return (
@@ -33,6 +33,7 @@ function FormSection({ title, icon: Icon, children }) {
 }
 
 export default function Properties() {
+  const { t } = useTranslation();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
@@ -131,8 +132,8 @@ export default function Properties() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Properties</h1>
-          <p className="text-sm text-gray-600">List and manage your real estate assets.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('properties')}</h1>
+          <p className="text-sm text-gray-600">{t('portfolioOverview')}</p>
         </div>
       </div>
 
@@ -141,23 +142,23 @@ export default function Properties() {
         <div className="lg:col-span-3 rounded-2xl border bg-white shadow-sm overflow-hidden">
           <div className="bg-gray-50/50 p-5 border-b flex items-center justify-between">
             <div className="text-sm font-bold text-gray-900 uppercase tracking-tight">
-              {editingId ? "Edit Property Profile" : "Add New Property Profile"}
+              {editingId ? t('editProperty') : t('addProperty')}
             </div>
             <div className={`text-[10px] font-medium px-2 py-1 rounded ${editingId ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'}`}>
-              {editingId ? 'Edit Mode' : 'Asset Management'}
+              {editingId ? t('edit') : t('finance')}
             </div>
           </div>
           
           <form onSubmit={handleSubmit(onSubmit)} className="p-6">
-            <FormSection title="1. Identification & Location" icon={Building2}>
+            <FormSection title={t('address')} icon={Building2}>
               <div className="md:col-span-2">
-                <Input label="Property Name / Number" placeholder="Flat 402, Skyline Residency" error={errors.name?.message} {...register("name", { required: "Name is required", maxLength: 100 })} />
+                <Input label={t('propertyName')} placeholder="Flat 402, Skyline Residency" error={errors.name?.message} {...register("name", { required: "Name is required", maxLength: 100 })} />
               </div>
               <div className="md:col-span-2">
-                <Input label="Complete Address" placeholder="Street, Area, etc." error={errors.address?.message} {...register("address", { required: "Address is required", maxLength: 200 })} />
+                <Input label={t('address')} placeholder="Street, Area, etc." error={errors.address?.message} {...register("address", { required: "Address is required", maxLength: 200 })} />
               </div>
-              <Input label="Landmark" placeholder="Near Apollo Hospital" {...register("landmark", { maxLength: 100 })} />
-              <Input label="Pincode" placeholder="560001" maxLength={6} {...register("pincode", { pattern: /^\d{6}$/ })} />
+              <Input label={t('landmark')} placeholder="Near Apollo Hospital" {...register("landmark", { maxLength: 100 })} />
+              <Input label={t('pincode')} placeholder="560001" maxLength={6} {...register("pincode", { pattern: /^\d{6}$/ })} />
               
               <label className="block">
                 <div className="mb-1 text-sm font-medium text-gray-700">Property Type</div>
@@ -184,19 +185,19 @@ export default function Properties() {
               </div>
             </FormSection>
 
-            <FormSection title="2. Financial Details" icon={Wallet}>
-              <Input label="Monthly Rent (₹)" error={errors.rent?.message} {...register("rent", validators.amount)} />
-              <Input label="Security Deposit (₹)" {...register("securityDeposit", { min: 0 })} />
-              <Input label="Maintenance Charges (₹)" {...register("maintenanceCharges", { min: 0 })} />
+            <FormSection title={t('rentAmount')} icon={Wallet}>
+              <Input label={t('rentAmount')} error={errors.rent?.message} {...register("rent", validators.amount)} />
+              <Input label={t('securityDeposit')} {...register("securityDeposit", { min: 0 })} />
+              <Input label={t('maintenanceCharges')} {...register("maintenanceCharges", { min: 0 })} />
               <label className="block">
-                <div className="mb-1 text-sm font-medium text-gray-700">Maintenance Paid By</div>
+                <div className="mb-1 text-sm font-medium text-gray-700">{t('maintenancePaidBy')}</div>
                 <select className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-200 transition" {...register("maintenancePaidBy")}>
                   <option value="owner">Owner (Included in Rent)</option>
                   <option value="tenant">Tenant (Paid Separately)</option>
                 </select>
               </label>
-              <Input label="Notice Period (Months)" type="number" {...register("noticePeriod", { min: 0 })} />
-              <Input label="Lock-in Period (Months)" type="number" {...register("lockInPeriod", { min: 0 })} />
+              <Input label={t('noticePeriod')} type="number" {...register("noticePeriod", { min: 0 })} />
+              <Input label={t('lockInPeriod')} type="number" {...register("lockInPeriod", { min: 0 })} />
             </FormSection>
 
             <FormSection title="3. Utilities & Amenities" icon={Zap}>
@@ -260,11 +261,11 @@ export default function Properties() {
             <div className="mt-10 pt-6 border-t flex gap-3">
               {editingId && (
                 <Button variant="ghost" className="flex-1 border" onClick={onCancelEdit} type="button">
-                  Cancel
+                  {t('cancel')}
                 </Button>
               )}
               <Button className={`flex-[2] text-white py-3 shadow-lg transition-all ${editingId ? 'bg-amber-600 hover:bg-amber-700 shadow-amber-100' : 'bg-gray-900 shadow-gray-200 hover:shadow-xl'}`} disabled={processing} type="submit">
-                {processing ? "Processing..." : editingId ? "Update Property Profile" : "Create Property Profile"}
+                {processing ? "Processing..." : editingId ? t('editProperty') : t('addProperty')}
               </Button>
             </div>
           </form>

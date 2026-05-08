@@ -14,35 +14,37 @@ import {
   Info
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useTranslation } from "../../context/LanguageContext.jsx";
 import { useMemo } from "react";
 
 export default function Sidebar({ isOpen = true, isExpanded = false }) {
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const navLinks = useMemo(() => {
     if (user?.role === "landlord") {
       return [
-        { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-        { to: "/properties", icon: Home, label: "Properties" },
-        { to: "/tenants", icon: Users, label: "Tenants" },
-        { to: "/finance", icon: DollarSign, label: "Finance" },
-        { to: "/maintenance", icon: Wrench, label: "Maintenance" },
-        { to: "/documents", icon: FolderOpen, label: "Documents" },
-        { to: "/settings", icon: Settings, label: "Settings" },
+        { to: "/dashboard", icon: LayoutDashboard, label: t('dashboard') },
+        { to: "/properties", icon: Home, label: t('properties') },
+        { to: "/tenants", icon: Users, label: t('tenants') },
+        { to: "/finance", icon: DollarSign, label: t('finance') },
+        { to: "/maintenance", icon: Wrench, label: t('maintenance') },
+        { to: "/documents", icon: FolderOpen, label: t('documents') },
+        { to: "/settings", icon: Settings, label: t('settings') },
       ];
     } else {
       return [
-        { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-        { to: "/payments", icon: DollarSign, label: "Rent & Payments" },
-        { to: "/maintenance", icon: Wrench, label: "Maintenance" },
-        { to: "/lease", icon: FileText, label: "Lease Info" },
-        { to: "/documents", icon: FolderOpen, label: "Documents" },
-        { to: "/property-info", icon: Info, label: "Property Info" },
-        { to: "/communication", icon: MessageSquare, label: "Communication" },
-        { to: "/settings", icon: Settings, label: "Settings" },
+        { to: "/dashboard", icon: LayoutDashboard, label: t('dashboard') },
+        { to: "/payments", icon: DollarSign, label: t('payments') },
+        { to: "/maintenance", icon: Wrench, label: t('maintenance') },
+        { to: "/lease", icon: FileText, label: t('lease') },
+        { to: "/documents", icon: FolderOpen, label: t('documents') },
+        { to: "/property-info", icon: Info, label: t('propertyInfo') },
+        { to: "/communication", icon: MessageSquare, label: t('communication') },
+        { to: "/settings", icon: Settings, label: t('settings') },
       ];
     }
-  }, [user?.role]);
+  }, [user?.role, t]);
 
   return (
     <aside className={`sidebar-container ${isOpen ? 'open' : ''} ${isExpanded ? 'expanded' : ''}`}>

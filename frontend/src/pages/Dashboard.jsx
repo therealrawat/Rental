@@ -5,9 +5,11 @@ import StatCard from "../components/dashboard/StatCard.jsx";
 import { propertiesApi, tenantsApi } from "../services/api.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { Home, User, Calendar, CreditCard, ArrowUpRight, Building2, Users } from "lucide-react";
+import { useTranslation } from "../context/LanguageContext.jsx";
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [properties, setProperties] = useState([]);
   const [tenants, setTenants] = useState([]);
@@ -64,10 +66,10 @@ export default function Dashboard() {
   if (!isLandlord) {
     return (
       <div>
-        <div className="mb-6">
-          <div className="text-2xl font-bold text-gray-900">Tenant Dashboard</div>
-          <div className="text-sm text-gray-600">Welcome back! Here's your lease overview.</div>
-        </div>
+      <div>
+        <div className="text-2xl font-bold text-gray-900">{t('tenantDashboard')}</div>
+        <div className="text-sm text-gray-600">{t('welcome')}! {t('leaseOverview')}</div>
+      </div>
 
         {tenants.length === 0 ? (
           <div className="bg-white rounded-2xl border p-8 text-center max-w-2xl mx-auto mt-4">
@@ -76,7 +78,7 @@ export default function Dashboard() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <StatCard 
-              title="Monthly Rent" 
+              title={t('rentAmount')} 
               value={`₹ ${Number(metrics.rentAmount).toLocaleString()}`} 
               icon={<CreditCard className="text-emerald-600" size={20} />}
             />
@@ -122,24 +124,24 @@ export default function Dashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <div className="text-2xl font-bold text-gray-900">Landlord Dashboard</div>
-        <div className="text-sm text-gray-600">Overview of your rental portfolio activity.</div>
+        <div className="text-2xl font-bold text-gray-900">{t('landlordDashboard')}</div>
+        <div className="text-sm text-gray-600">{t('portfolioOverview')}</div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
         <StatCard 
-          title="Total Properties" 
+          title={t('activeProperties')} 
           value={metrics.totalProperties} 
           icon={<Building2 className="text-indigo-600" size={20} />}
         />
         <StatCard 
-          title="Occupied Units" 
+          title={t('totalTenants')} 
           value={metrics.occupiedUnits} 
           icon={<Users className="text-pink-600" size={20} />}
           hint="Based on current tenants"
         />
         <StatCard 
-          title="Monthly Revenue" 
+          title={t('totalRevenue')} 
           value={`₹ ${metrics.rentCollected.toLocaleString()}`} 
           icon={<CreditCard className="text-emerald-600" size={20} />}
         />
@@ -151,7 +153,7 @@ export default function Dashboard() {
           <div className="p-6 border-b border-gray-50 flex items-center justify-between">
             <h3 className="font-bold text-gray-900 flex items-center gap-2">
               <Home size={18} className="text-gray-400" />
-              Recent Properties
+              {t('recentProperties')}
             </h3>
             <Link 
               to="/properties" 
