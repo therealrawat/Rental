@@ -17,6 +17,7 @@ export default function Properties() {
     reset,
     formState: { errors }
   } = useForm({
+    mode: "onChange",
     defaultValues: { name: "", address: "", units: 1, rent: 0, status: "active" }
   });
 

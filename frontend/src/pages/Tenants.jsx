@@ -20,6 +20,20 @@ import {
   CheckCircle2
 } from "lucide-react";
 
+function FormSection({ title, icon: Icon, children }) {
+  return (
+    <div className="mb-8 last:mb-0">
+      <div className="flex items-center gap-2 mb-4 pb-2 border-b border-gray-100">
+        {Icon && <Icon size={18} className="text-indigo-600" />}
+        <h3 className="font-semibold text-gray-900 text-sm">{title}</h3>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export default function Tenants() {
   const { user } = useAuth();
   const [tenants, setTenants] = useState([]);
@@ -35,6 +49,7 @@ export default function Tenants() {
     reset,
     formState: { errors }
   } = useForm({
+    mode: "onChange",
     defaultValues: {
       propertyId: "",
       name: "",
@@ -105,18 +120,6 @@ export default function Tenants() {
     );
   }
 
-  const FormSection = ({ title, icon: Icon, children }) => (
-    <div className="mb-8 last:mb-0">
-      <div className="flex items-center gap-2 mb-4 pb-2 border-b border-gray-100">
-        {Icon && <Icon size={18} className="text-indigo-600" />}
-        <h3 className="font-semibold text-gray-900 text-sm">{title}</h3>
-      </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        {children}
-      </div>
-    </div>
-  );
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -165,13 +168,13 @@ export default function Tenants() {
             </FormSection>
 
             <FormSection title="2. Identity & KYCs" icon={ShieldCheck}>
-              <Input label="Full Name" error={errors.name?.message} {...register("name", { required: "Name is required" })} />
+              <Input label="Full Name" maxLength={50} error={errors.name?.message} {...register("name", validators.name)} />
               <Input label="Email Address" error={errors.email?.message} {...register("email", validators.email)} />
-              <Input label="Phone Number" error={errors.phone?.message} {...register("phone", validators.phone)} />
-              <Input label="Aadhaar Number" placeholder="12-digit UID" {...register("aadhaarNumber")} />
-              <Input label="PAN Card Number" placeholder="ABCDE1234F" {...register("panNumber")} />
+              <Input label="Phone Number" maxLength={10} error={errors.phone?.message} {...register("phone", validators.phone)} />
+              <Input label="Aadhaar Number" maxLength={12} placeholder="12-digit UID" error={errors.aadhaarNumber?.message} {...register("aadhaarNumber", validators.aadhaar)} />
+              <Input label="PAN Card Number" maxLength={10} placeholder="ABCDE1234F" error={errors.panNumber?.message} {...register("panNumber", validators.pan)} />
               <div className="md:col-span-2">
-                <Input label="Permanent (Hometown) Address" placeholder="As per Aadhaar" {...register("permanentAddress")} />
+                <Input label="Permanent (Hometown) Address" maxLength={200} placeholder="As per Aadhaar" error={errors.permanentAddress?.message} {...register("permanentAddress", { maxLength: { value: 200, message: "Max 200 characters" } })} />
               </div>
             </FormSection>
 
@@ -188,16 +191,16 @@ export default function Tenants() {
                   <option value="other">Other</option>
                 </select>
               </label>
-              <Input label="Company Name" {...register("companyName")} />
-              <Input label="Official Email ID" {...register("officialEmail")} />
-              <Input label="Office Address" {...register("officeAddress")} />
+              <Input label="Company Name" maxLength={100} error={errors.companyName?.message} {...register("companyName", { maxLength: { value: 100, message: "Max 100 characters" } })} />
+              <Input label="Official Email ID" error={errors.officialEmail?.message} {...register("officialEmail", { pattern: validators.email.pattern })} />
+              <Input label="Office Address" maxLength={200} error={errors.officeAddress?.message} {...register("officeAddress", { maxLength: { value: 200, message: "Max 200 characters" } })} />
             </FormSection>
 
             <FormSection title="4. Occupancy Details" icon={Users}>
-              <Input label="Number of Occupants" type="number" {...register("numOccupants")} />
-              <Input label="Marital Status" placeholder="Single/Married" {...register("maritalStatus")} />
+              <Input label="Number of Occupants" type="number" maxLength={2} error={errors.numOccupants?.message} {...register("numOccupants", { min: { value: 1, message: "Min 1" }, max: { value: 20, message: "Max 20" } })} />
+              <Input label="Marital Status" placeholder="Single/Married" maxLength={20} error={errors.maritalStatus?.message} {...register("maritalStatus", { maxLength: { value: 20, message: "Max 20" } })} />
               <div className="md:col-span-2">
-                <Input label="Occupant Names & Relationships" placeholder="e.g. Spouse, 2 Children" {...register("occupantsDetails")} />
+                <Input label="Occupant Names & Relationships" maxLength={500} placeholder="e.g. Spouse, 2 Children" error={errors.occupantsDetails?.message} {...register("occupantsDetails", { maxLength: { value: 500, message: "Max 500 characters" } })} />
               </div>
               <label className="block">
                 <div className="mb-1 text-sm font-medium text-gray-700">Food Preference</div>
@@ -210,12 +213,12 @@ export default function Tenants() {
                   <option value="any">Any / No Preference</option>
                 </select>
               </label>
-              <Input label="Vehicle Details (Parking)" placeholder="KA-01-AB-1234 (SUV)" {...register("vehicleDetails")} />
+              <Input label="Vehicle Details (Parking)" maxLength={100} placeholder="KA-01-AB-1234 (SUV)" error={errors.vehicleDetails?.message} {...register("vehicleDetails", { maxLength: { value: 100, message: "Max 100 characters" } })} />
             </FormSection>
 
             <FormSection title="5. References & Contacts" icon={Phone}>
-              <Input label="Emergency Contact" placeholder="Parent/Relative Phone" {...register("emergencyContact")} />
-              <Input label="Local City Contact" placeholder="Local friend/relative" {...register("localContact")} />
+              <Input label="Emergency Contact" maxLength={50} placeholder="Parent/Relative Phone" error={errors.emergencyContact?.message} {...register("emergencyContact", { maxLength: { value: 50, message: "Max 50 characters" } })} />
+              <Input label="Local City Contact" maxLength={50} placeholder="Local friend/relative" error={errors.localContact?.message} {...register("localContact", { maxLength: { value: 50, message: "Max 50 characters" } })} />
             </FormSection>
 
             <FormSection title="6. Disclosures & Policies" icon={CheckCircle2}>

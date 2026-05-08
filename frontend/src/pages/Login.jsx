@@ -14,7 +14,10 @@ export default function Login() {
     register,
     handleSubmit,
     formState: { errors }
-  } = useForm({ defaultValues: { email: "", password: "" } });
+  } = useForm({ 
+    mode: "onChange",
+    defaultValues: { email: "", password: "" } 
+  });
 
   const onSubmit = async (values) => {
     await login(values);

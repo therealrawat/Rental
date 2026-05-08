@@ -13,7 +13,10 @@ export default function Register() {
     register,
     handleSubmit,
     formState: { errors }
-  } = useForm({ defaultValues: { name: "", email: "", password: "", role: "landlord" } });
+  } = useForm({ 
+    mode: "onChange",
+    defaultValues: { name: "", email: "", password: "", role: "landlord" } 
+  });
 
   const onSubmit = async (values) => {
     await doRegister(values);
