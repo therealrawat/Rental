@@ -47,3 +47,11 @@ export const notificationsApi = {
   list: () => api.get("/notifications").then((r) => r.data),
   markAsRead: () => api.post("/notifications/read").then((r) => r.data)
 };
+
+export const documentsApi = {
+  list: () => api.get("/documents").then((r) => r.data),
+  upload: (formData) => api.post("/documents/upload", formData, {
+    headers: { "Content-Type": "multipart/form-data" }
+  }).then((r) => r.data),
+  remove: (id) => api.delete(`/documents/${id}`).then((r) => r.data)
+};

@@ -9,6 +9,8 @@ import propertyRoutes from "./routes/properties.js";
 import tenantRoutes from "./routes/tenants.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import documentRoutes from "./routes/documentRoutes.js";
+import { initializeStorage } from "./config/supabase.js";
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
 
 const app = express();
@@ -29,6 +31,7 @@ app.use("/api/properties", propertyRoutes);
 app.use("/api/tenants", tenantRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/documents", documentRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
@@ -36,6 +39,8 @@ app.use(errorHandler);
 const port = Number(process.env.PORT || 5000);
 
 await connectDatabase();
+await initializeStorage();
+
 app.listen(port, () => {
   // eslint-disable-next-line no-console
   console.log(`API listening on http://localhost:${port}`);
