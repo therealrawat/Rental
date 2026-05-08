@@ -63,3 +63,10 @@ export const documentsApi = {
   updateStatus: (id, payload) => api.patch(`/documents/${id}/status`, payload).then((r) => r.data),
   remove: (id) => api.delete(`/documents/${id}`).then((r) => r.data)
 };
+
+export const maintenanceApi = {
+  list: () => api.get("/maintenance").then((r) => r.data),
+  create: (payload) => api.post("/maintenance", payload).then((r) => r.data),
+  update: (id, payload) => api.patch(`/maintenance/${id}`, payload).then((r) => r.data),
+  remove: (id) => api.delete(`/maintenance/${id}`).then((r) => r.data)
+};

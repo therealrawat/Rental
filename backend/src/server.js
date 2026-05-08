@@ -10,6 +10,7 @@ import tenantRoutes from "./routes/tenants.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import documentRoutes from "./routes/documentRoutes.js";
+import maintenanceRoutes from "./routes/maintenanceRoutes.js";
 import { initializeStorage } from "./config/supabase.js";
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
 
@@ -32,6 +33,7 @@ app.use("/api/tenants", tenantRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/documents", documentRoutes);
+app.use("/api/maintenance", maintenanceRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
