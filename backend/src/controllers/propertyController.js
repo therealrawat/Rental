@@ -39,14 +39,9 @@ export async function searchProperties(req, res, next) {
 
 export async function createProperty(req, res, next) {
   try {
-    const { name, address, units, rent, status } = req.body;
     const property = await Property.create({
-      userId: req.user.id,
-      name,
-      address,
-      units,
-      rent,
-      status
+      ...req.body,
+      userId: req.user.id
     });
     return res.status(201).json(property);
   } catch (err) {
@@ -66,10 +61,9 @@ export async function getProperty(req, res, next) {
 
 export async function updateProperty(req, res, next) {
   try {
-    const { name, address, units, rent, status } = req.body;
     const property = await Property.findOneAndUpdate(
       { _id: req.params.id, userId: req.user.id },
-      { name, address, units, rent, status },
+      { ...req.body },
       { new: true }
     );
     if (!property) return res.status(404).json({ message: "Property not found" });
