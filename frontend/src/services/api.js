@@ -36,3 +36,14 @@ export const tenantsApi = {
   update: (id, payload) => api.put(`/tenants/${id}`, payload).then((r) => r.data),
   remove: (id) => api.delete(`/tenants/${id}`).then((r) => r.data)
 };
+
+export const paymentsApi = {
+  list: () => api.get("/payments").then((r) => r.data),
+  create: (payload) => api.post("/payments", payload).then((r) => r.data),
+  approve: (id, payload) => api.patch(`/payments/${id}/approve`, payload).then((r) => r.data)
+};
+
+export const notificationsApi = {
+  list: () => api.get("/notifications").then((r) => r.data),
+  markAsRead: () => api.post("/notifications/read").then((r) => r.data)
+};

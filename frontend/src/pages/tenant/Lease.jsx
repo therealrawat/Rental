@@ -428,10 +428,14 @@ export default function Lease() {
                   <label className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Monthly Rent</label>
                   <p className="text-4xl font-black mt-2 tracking-tight">₹ {Number(lease.rentAmount).toLocaleString()}</p>
                 </div>
-                <div className="pt-8 border-t border-gray-800 flex justify-between items-center">
+                <div className="pt-8 border-t border-gray-800 grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Security Deposit</label>
-                    <p className="text-xl font-bold mt-1 text-emerald-400">₹ {(lease.rentAmount * 2).toLocaleString()}</p>
+                    <p className="text-xl font-bold mt-1 text-emerald-400">₹ {(lease.propertyId?.securityDeposit || 0).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Maintenance</label>
+                    <p className="text-xl font-bold mt-1 text-blue-400">₹ {(lease.propertyId?.maintenanceCharges || 0).toLocaleString()}</p>
                   </div>
                 </div>
                 <p className="text-[10px] text-gray-500 italic">

@@ -14,6 +14,7 @@ import Documents from "./pages/tenant/Documents.jsx";
 import PropertyInfo from "./pages/tenant/PropertyInfo.jsx";
 import Communication from "./pages/tenant/Communication.jsx";
 import Settings from "./pages/tenant/Settings.jsx";
+import Finance from "./pages/Finance.jsx";
 
 function AuthenticatedLayout() {
   const { user } = useAuth();
@@ -28,7 +29,7 @@ function AuthenticatedLayout() {
           <>
             <Route path="properties" element={<Properties />} />
             <Route path="tenants" element={<Tenants />} />
-            <Route path="finance" element={<div className="p-8">Finance Dashboard (Coming Soon)</div>} />
+            <Route path="finance" element={<Finance />} />
           </>
         )}
 
