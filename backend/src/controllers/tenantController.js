@@ -15,7 +15,7 @@ export async function listTenants(req, res, next) {
       })
       .populate({
         path: "propertyId",
-        select: "name address userId",
+        select: "name address userId landmark pincode propertyType floorNumber totalFloors hasLift electricityMeterType waterSupply powerBackup parkingDetails furnishingStatus furnitureInventory societyNocRequired",
         populate: { path: "userId", select: "name email" }
       });
       
@@ -117,7 +117,7 @@ export async function getTenant(req, res, next) {
     const tenant = await Tenant.findById(req.params.id)
       .populate({
         path: "propertyId",
-        select: "name address userId",
+        select: "name address userId landmark pincode propertyType floorNumber totalFloors hasLift electricityMeterType waterSupply powerBackup parkingDetails furnishingStatus furnitureInventory societyNocRequired",
         populate: { path: "userId", select: "name email" }
       });
     

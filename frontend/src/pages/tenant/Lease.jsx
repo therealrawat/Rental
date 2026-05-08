@@ -21,7 +21,10 @@ import {
   CheckCircle2, 
   Info,
   Edit3,
-  X
+  X,
+  Zap,
+  Armchair,
+  MapPin
 } from "lucide-react";
 
 function FormSection({ title, icon: Icon, children }) {
@@ -271,7 +274,19 @@ export default function Lease() {
               </div>
               <div>
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">Unit Address</label>
-                <p className="text-sm font-medium text-gray-600 mt-1 leading-relaxed">{lease.propertyId?.address}</p>
+                <p className="text-sm font-medium text-gray-600 mt-1 leading-relaxed">
+                  {lease.propertyId?.address}
+                  {lease.propertyId?.landmark && <span className="block text-xs text-indigo-500 mt-1 italic">Landmark: {lease.propertyId.landmark}</span>}
+                  {lease.propertyId?.pincode && <span className="block text-xs text-gray-400">Pincode: {lease.propertyId.pincode}</span>}
+                </p>
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">Unit Specs</label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <span className="px-2 py-1 bg-gray-100 text-gray-600 text-[10px] font-bold rounded uppercase">{lease.propertyId?.propertyType}</span>
+                  <span className="px-2 py-1 bg-gray-100 text-gray-600 text-[10px] font-bold rounded uppercase">Floor {lease.propertyId?.floorNumber} of {lease.propertyId?.totalFloors}</span>
+                  {lease.propertyId?.hasLift && <span className="px-2 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-bold rounded uppercase flex items-center gap-1"><CheckCircle2 size={10} /> Lift Available</span>}
+                </div>
               </div>
               <div>
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">Landlord / Owner</label>
@@ -282,14 +297,81 @@ export default function Lease() {
                   <p className="text-sm font-bold text-emerald-600">{lease.propertyId?.userId?.name}</p>
                 </div>
               </div>
-              <div>
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">Lease Status</label>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest rounded-full border border-emerald-100">
-                    Active & Valid
-                  </span>
+            </div>
+          </div>
+
+          {/* Utilities Section */}
+          <div className="bg-white rounded-[2rem] border border-gray-100 p-10 shadow-sm">
+            <h3 className="text-xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+              <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+                <Zap size={20} />
+              </div>
+              Utilities & Infrastructure
+            </h3>
+            <div className="grid sm:grid-cols-2 gap-8">
+              <div className="flex items-start gap-4">
+                <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 shrink-0">
+                  <Zap size={14} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Electricity</p>
+                  <p className="text-sm font-bold text-gray-900 capitalize">{lease.propertyId?.electricityMeterType} Meter</p>
+                  <p className="text-[10px] text-gray-500 mt-0.5">Bills to be paid as per usage</p>
                 </div>
               </div>
+              <div className="flex items-start gap-4">
+                <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 shrink-0">
+                  <Info size={14} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Water Supply</p>
+                  <p className="text-sm font-bold text-gray-900">{lease.propertyId?.waterSupply || 'Municipal / Borewell'}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 shrink-0">
+                  <Zap size={14} className="text-amber-500" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Power Backup</p>
+                  <p className="text-sm font-bold text-gray-900">{lease.propertyId?.powerBackup || 'Not Available'}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 shrink-0">
+                  <MapPin size={14} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Parking</p>
+                  <p className="text-sm font-bold text-gray-900">{lease.propertyId?.parkingDetails || 'No Dedicated Parking'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Furnishing Section */}
+          <div className="bg-white rounded-[2rem] border border-gray-100 p-10 shadow-sm">
+            <h3 className="text-xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+              <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600">
+                <Armchair size={20} />
+              </div>
+              Furnishing & Inventory
+            </h3>
+            <div className="space-y-6">
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Furnishing Status</p>
+                <span className="px-4 py-1.5 bg-amber-50 text-amber-700 text-xs font-bold rounded-full border border-amber-100 capitalize">
+                  {lease.propertyId?.furnishingStatus}
+                </span>
+              </div>
+              {lease.propertyId?.furnitureInventory && (
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Inventory Checklist</p>
+                  <div className="bg-gray-50 rounded-2xl p-6 text-sm text-gray-600 leading-relaxed border border-gray-100">
+                    {lease.propertyId.furnitureInventory}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
