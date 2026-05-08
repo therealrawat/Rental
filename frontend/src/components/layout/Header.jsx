@@ -158,8 +158,12 @@ export default function Header({ onToggleMobileNav, onToggleSidebar }) {
                 <p className="text-xs font-semibold text-gray-900 leading-none">{user?.name || 'User'}</p>
                 <p className="text-[10px] text-gray-500 mt-0.5">{displayRole}</p>
               </div>
-              <div className="w-9 h-9 rounded-full bg-gray-900 text-white flex items-center justify-center text-xs font-bold shadow-sm">
-                {initials}
+              <div className="w-9 h-9 rounded-full bg-gray-900 text-white flex items-center justify-center text-xs font-bold shadow-sm overflow-hidden">
+                {user?.avatarUrl ? (
+                  <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                  initials
+                )}
               </div>
               <ChevronDown size={14} className={`text-gray-400 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
             </button>

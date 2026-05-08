@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { User } from "../models/User.js";
 import { Tenant } from "../models/Tenant.js";
 import { signAccessToken } from "../utils/jwt.js";
+import { supabase } from "../config/supabase.js";
 
 export async function register(req, res, next) {
   try {
@@ -22,7 +23,7 @@ export async function register(req, res, next) {
     const token = signAccessToken(user);
     return res.status(201).json({
       token,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role, createdAt: user.createdAt }
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl, createdAt: user.createdAt }
     });
   } catch (err) {
     return next(err);
@@ -43,7 +44,7 @@ export async function login(req, res, next) {
     const token = signAccessToken(user);
     return res.json({
       token,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role, createdAt: user.createdAt }
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl, createdAt: user.createdAt }
     });
   } catch (err) {
     return next(err);
@@ -65,7 +66,7 @@ export async function updateProfile(req, res, next) {
     }
 
     return res.json({
-      user: { id: user._id, name: user.name, email: user.email, role: user.role, createdAt: user.createdAt }
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl, createdAt: user.createdAt }
     });
   } catch (err) {
     return next(err);
@@ -85,6 +86,43 @@ export async function updatePassword(req, res, next) {
     await user.save();
 
     return res.json({ message: "Password updated successfully" });
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function updateAvatar(req, res, next) {
+  try {
+    const file = req.file;
+    if (!file) return res.status(400).json({ message: "No file uploaded" });
+    if (!supabase) return res.status(503).json({ message: "Storage not configured" });
+
+    const fileExt = file.originalname.split(".").pop();
+    const fileName = `avatars/${req.user.id}-${Date.now()}.${fileExt}`;
+
+    const { data, error } = await supabase.storage
+      .from("tenant-documents") // Reusing the same bucket for simplicity, or create an 'avatars' bucket
+      .upload(fileName, file.buffer, {
+        contentType: file.mimetype,
+        upsert: true
+      });
+
+    if (error) throw error;
+
+    const { data: signedData } = await supabase.storage
+      .from("tenant-documents")
+      .createSignedUrl(fileName, 31536000); // 1 year expiry for avatar
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { avatarUrl: signedData?.signedUrl || publicUrl },
+      { new: true }
+    );
+
+    return res.json({
+      avatarUrl: user.avatarUrl,
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl, createdAt: user.createdAt }
+    });
   } catch (err) {
     return next(err);
   }

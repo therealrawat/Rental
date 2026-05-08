@@ -1,7 +1,10 @@
 import { Router } from "express";
 import { body } from "express-validator";
-import { login, register, updateProfile, updatePassword } from "../controllers/authController.js";
+import { login, register, updateProfile, updatePassword, updateAvatar } from "../controllers/authController.js";
 import { requireAuth } from "../middleware/auth.js";
+import multer from "multer";
+
+const upload = multer({ storage: multer.memoryStorage() });
 import { validate } from "../validators/validate.js";
 
 const router = Router();
@@ -42,5 +45,7 @@ router.put(
   validate,
   updatePassword
 );
+
+router.post("/avatar", requireAuth, upload.single("avatar"), updateAvatar);
 
 export default router;

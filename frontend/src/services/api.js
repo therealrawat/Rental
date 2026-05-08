@@ -16,7 +16,10 @@ export const authApi = {
   register: (payload) => api.post("/auth/register", payload).then((r) => r.data),
   login: (payload) => api.post("/auth/login", payload).then((r) => r.data),
   updateProfile: (payload) => api.put("/auth/profile", payload).then((r) => r.data),
-  updatePassword: (payload) => api.put("/auth/password", payload).then((r) => r.data)
+  updatePassword: (payload) => api.put("/auth/password", payload).then((r) => r.data),
+  updateAvatar: (formData) => api.post("/auth/avatar", formData, {
+    headers: { "Content-Type": "multipart/form-data" }
+  }).then((r) => r.data)
 };
 
 export const propertiesApi = {
