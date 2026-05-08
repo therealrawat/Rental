@@ -57,7 +57,14 @@ export async function createTenant(req, res, next) {
       return res.status(403).json({ message: "Tenants cannot create tenant records" });
     }
 
-    const { propertyId, name, email, phone, leaseStart, leaseEnd, rentAmount } = req.body;
+    const { 
+      propertyId, name, email, phone, leaseStart, leaseEnd, rentAmount,
+      aadhaarNumber, panNumber, permanentAddress,
+      employmentType, companyName, officeAddress, officialEmail,
+      numOccupants, occupantsDetails, maritalStatus, foodPreference, vehicleDetails,
+      emergencyContact, localContact,
+      policeVerificationConsent, smokingAllowed, drinkingAllowed, petsAllowed
+    } = req.body;
 
     const property = await Property.findOne({ _id: propertyId, userId: req.user.id });
     if (!property) return res.status(404).json({ message: "Property not found" });
@@ -87,7 +94,12 @@ export async function createTenant(req, res, next) {
       leaseStart,
       leaseEnd,
       rentAmount,
-      userId: tenantUser._id
+      userId: tenantUser._id,
+      aadhaarNumber, panNumber, permanentAddress,
+      employmentType, companyName, officeAddress, officialEmail,
+      numOccupants, occupantsDetails, maritalStatus, foodPreference, vehicleDetails,
+      emergencyContact, localContact,
+      policeVerificationConsent, smokingAllowed, drinkingAllowed, petsAllowed
     });
 
     return res.status(201).json({
@@ -137,10 +149,38 @@ export async function updateTenant(req, res, next) {
       return res.status(403).json({ message: "Forbidden" });
     }
 
-    const { name, email, phone, leaseStart, leaseEnd, rentAmount } = req.body;
+    const { 
+      name, email, phone, leaseStart, leaseEnd, rentAmount,
+      aadhaarNumber, panNumber, permanentAddress,
+      employmentType, companyName, officeAddress, officialEmail,
+      numOccupants, occupantsDetails, maritalStatus, foodPreference, vehicleDetails,
+      emergencyContact, localContact,
+      policeVerificationConsent, smokingAllowed, drinkingAllowed, petsAllowed
+    } = req.body;
     
     tenant.name = name ?? tenant.name;
     tenant.phone = phone ?? tenant.phone;
+    
+    // Update profile info (allowed for both or restricted depending on business logic, 
+    // here we let both update non-sensitive info)
+    tenant.aadhaarNumber = aadhaarNumber ?? tenant.aadhaarNumber;
+    tenant.panNumber = panNumber ?? tenant.panNumber;
+    tenant.permanentAddress = permanentAddress ?? tenant.permanentAddress;
+    tenant.employmentType = employmentType ?? tenant.employmentType;
+    tenant.companyName = companyName ?? tenant.companyName;
+    tenant.officeAddress = officeAddress ?? tenant.officeAddress;
+    tenant.officialEmail = officialEmail ?? tenant.officialEmail;
+    tenant.numOccupants = numOccupants ?? tenant.numOccupants;
+    tenant.occupantsDetails = occupantsDetails ?? tenant.occupantsDetails;
+    tenant.maritalStatus = maritalStatus ?? tenant.maritalStatus;
+    tenant.foodPreference = foodPreference ?? tenant.foodPreference;
+    tenant.vehicleDetails = vehicleDetails ?? tenant.vehicleDetails;
+    tenant.emergencyContact = emergencyContact ?? tenant.emergencyContact;
+    tenant.localContact = localContact ?? tenant.localContact;
+    tenant.policeVerificationConsent = policeVerificationConsent ?? tenant.policeVerificationConsent;
+    tenant.smokingAllowed = smokingAllowed ?? tenant.smokingAllowed;
+    tenant.drinkingAllowed = drinkingAllowed ?? tenant.drinkingAllowed;
+    tenant.petsAllowed = petsAllowed ?? tenant.petsAllowed;
     
     if (isLandlord) {
       tenant.email = email ?? tenant.email;
