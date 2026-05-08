@@ -37,7 +37,8 @@ const tenantSchema = new mongoose.Schema(
     policeVerificationConsent: { type: Boolean, default: false },
     smokingAllowed: { type: Boolean, default: false },
     drinkingAllowed: { type: Boolean, default: false },
-    petsAllowed: { type: Boolean, default: false }
+    petsAllowed: { type: Boolean, default: false },
+    isDeleted: { type: Boolean, default: false }
   },
   { timestamps: { createdAt: "createdAt", updatedAt: "updatedAt" } }
 );

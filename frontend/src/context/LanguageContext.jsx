@@ -99,7 +99,9 @@ const translations = {
     // Placeholders
     searchTenant: "Search by tenant...",
     enterName: "Enter full name",
-    enterEmail: "e.g. tenant@email.com"
+    enterEmail: "e.g. tenant@email.com",
+    actionCannotBeUndone: "This action cannot be undone",
+    processing: "Processing..."
   },
   hi: {
     // Nav
@@ -199,7 +201,9 @@ const translations = {
     // Placeholders
     searchTenant: "खोजें...",
     enterName: "पूरा नाम दर्ज करें",
-    enterEmail: "जैसे: tenant@email.com"
+    enterEmail: "जैसे: tenant@email.com",
+    actionCannotBeUndone: "यह क्रिया वापस नहीं ली जा सकती",
+    processing: "प्रक्रिया जारी है..."
   }
 };
 

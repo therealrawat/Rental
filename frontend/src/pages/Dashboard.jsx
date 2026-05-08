@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import StatCard from "../components/dashboard/StatCard.jsx";
-import { propertiesApi, tenantsApi } from "../services/api.js";
+import { propertiesApi, tenantsApi, paymentsApi } from "../services/api.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { Home, User, Calendar, CreditCard, ArrowUpRight, Building2, Users } from "lucide-react";
 import { useTranslation } from "../context/LanguageContext.jsx";
@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [properties, setProperties] = useState([]);
   const [tenants, setTenants] = useState([]);
+  const [payments, setPayments] = useState([]);
 
   const isLandlord = user?.role === "landlord";
 
@@ -22,14 +23,23 @@ export default function Dashboard() {
       setLoading(true);
       try {
         if (isLandlord) {
-          const [props, tens] = await Promise.all([propertiesApi.list(), tenantsApi.list()]);
+          const [props, tens, pays] = await Promise.all([
+            propertiesApi.list(), 
+            tenantsApi.list(),
+            paymentsApi.list()
+          ]);
           if (!alive) return;
           setProperties(props);
           setTenants(tens);
+          setPayments(pays);
         } else {
-          const tens = await tenantsApi.list();
+          const [tens, pays] = await Promise.all([
+            tenantsApi.list(),
+            paymentsApi.list()
+          ]);
           if (!alive) return;
           setTenants(tens);
+          setPayments(pays);
         }
       } catch (err) {
         toast.error(err?.response?.data?.message || "Failed to load dashboard");
@@ -46,7 +56,10 @@ export default function Dashboard() {
     if (isLandlord) {
       const totalProperties = properties.length;
       const occupiedUnits = tenants.length;
-      const rentCollected = tenants.reduce((sum, t) => sum + (Number(t.rentAmount) || 0), 0);
+      // Actual collected = sum of all approved payments
+      const rentCollected = payments
+        .filter(p => p.status === 'approved')
+        .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
       return { totalProperties, occupiedUnits, rentCollected };
     } else {
       const myLease = tenants[0];

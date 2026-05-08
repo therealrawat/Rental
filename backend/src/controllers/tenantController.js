@@ -2,12 +2,15 @@ import bcrypt from "bcryptjs";
 import { Property } from "../models/Property.js";
 import { Tenant } from "../models/Tenant.js";
 import { User } from "../models/User.js";
+import { Payment } from "../models/Payment.js";
+import { Document } from "../models/Document.js";
+import { supabase } from "../config/supabase.js";
 
 export async function listTenants(req, res, next) {
   try {
     if (req.user.role === "tenant") {
-      // Find by userId OR email (fallback) to ensure the tenant sees their lease
       const tenants = await Tenant.find({ 
+        isDeleted: { $ne: true },
         $or: [
           { userId: req.user.id },
           { email: req.user.email }
@@ -19,7 +22,6 @@ export async function listTenants(req, res, next) {
         populate: { path: "userId", select: "name email" }
       });
       
-      // Auto-link userId if it was found by email but link was missing
       for (const t of tenants) {
         if (!t.userId) {
           t.userId = req.user.id;
@@ -33,7 +35,10 @@ export async function listTenants(req, res, next) {
     const properties = await Property.find({ userId: req.user.id }).select("_id");
     const propertyIds = properties.map((p) => p._id);
 
-    const tenants = await Tenant.find({ propertyId: { $in: propertyIds } })
+    const tenants = await Tenant.find({ 
+      propertyId: { $in: propertyIds },
+      isDeleted: { $ne: true }
+    })
       .sort({ createdAt: -1 })
       .populate("propertyId", "name address");
 
@@ -204,11 +209,50 @@ export async function deleteTenant(req, res, next) {
 
     const tenant = await Tenant.findById(req.params.id).populate("propertyId", "userId");
     if (!tenant) return res.status(404).json({ message: "Tenant not found" });
+    
     if (String(tenant.propertyId.userId) !== String(req.user.id)) {
       return res.status(403).json({ message: "Forbidden" });
     }
-    await Tenant.deleteOne({ _id: tenant._id });
-    return res.json({ message: "Tenant deleted" });
+
+    // Shadow delete
+    tenant.isDeleted = true;
+    await tenant.save();
+
+    return res.json({ message: "Tenant removed from active list (Temporary)" });
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function permanentlyDeleteTenant(req, res, next) {
+  try {
+    if (req.user.role === "tenant") {
+      return res.status(403).json({ message: "Tenants cannot perform permanent deletion" });
+    }
+
+    const tenant = await Tenant.findById(req.params.id).populate("propertyId", "userId");
+    if (!tenant) return res.status(404).json({ message: "Tenant not found" });
+    
+    if (String(tenant.propertyId.userId) !== String(req.user.id)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    // 1. Delete all documents from storage
+    const documents = await Document.find({ tenant: tenant._id });
+    if (documents.length > 0) {
+      const storageKeys = documents.map(d => d.storageKey);
+      await supabase.storage.from("tenant-documents").remove(storageKeys);
+    }
+
+    // 2. Delete all records from DB
+    await Promise.all([
+      Document.deleteMany({ tenant: tenant._id }),
+      Payment.deleteMany({ tenantId: tenant._id }),
+      User.deleteOne({ _id: tenant.userId }), // Delete the linked login account
+      Tenant.deleteOne({ _id: tenant._id })
+    ]);
+
+    return res.json({ message: "Tenant and all related data permanently deleted" });
   } catch (err) {
     return next(err);
   }

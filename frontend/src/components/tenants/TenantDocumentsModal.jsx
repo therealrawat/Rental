@@ -9,8 +9,10 @@ import {
   AlertCircle,
   FileSearch,
   Check,
-  Ban
+  Ban,
+  Trash2
 } from "lucide-react";
+import ConfirmDialog from "../common/ConfirmDialog.jsx";
 import { documentsApi } from "../../services/api.js";
 import { toast } from "react-hot-toast";
 
@@ -18,6 +20,7 @@ export default function TenantDocumentsModal({ tenant, onClose }) {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState(null);
+  const [confirmConfig, setConfirmConfig] = useState({ isOpen: false });
 
   useEffect(() => {
     if (tenant?._id) {
@@ -48,6 +51,28 @@ export default function TenantDocumentsModal({ tenant, onClose }) {
     } finally {
       setProcessingId(null);
     }
+  };
+
+  const handleDeleteDoc = (doc) => {
+    setConfirmConfig({
+      isOpen: true,
+      title: `Confirm deletion of ${doc.name}`,
+      message: "Are you sure you want to delete the selected file? This will remove it from both our records and storage.",
+      confirmText: "Delete File",
+      type: "danger",
+      onConfirm: async () => {
+        setConfirmConfig(prev => ({ ...prev, loading: true }));
+        try {
+          await documentsApi.remove(doc._id);
+          toast.success("Document deleted successfully");
+          fetchDocuments();
+          setConfirmConfig({ isOpen: false });
+        } catch (error) {
+          toast.error("Failed to delete document");
+          setConfirmConfig(prev => ({ ...prev, loading: false }));
+        }
+      }
+    });
   };
 
   const getStatusIcon = (status) => {
@@ -116,14 +141,13 @@ export default function TenantDocumentsModal({ tenant, onClose }) {
                       >
                         <Eye size={18} />
                       </a>
-                      <a 
-                        href={doc.url} 
-                        download 
-                        className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
-                        title="Download"
+                      <button 
+                        onClick={() => handleDeleteDoc(doc)}
+                        className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                        title="Delete"
                       >
-                        <Download size={18} />
-                      </a>
+                        <Trash2 size={18} />
+                      </button>
                     </div>
                   </div>
 
@@ -177,6 +201,11 @@ export default function TenantDocumentsModal({ tenant, onClose }) {
           </button>
         </div>
       </div>
+
+      <ConfirmDialog 
+        {...confirmConfig} 
+        onClose={() => setConfirmConfig({ isOpen: false })} 
+      />
     </div>
   );
 }

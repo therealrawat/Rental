@@ -18,10 +18,13 @@ import {
   MapPin, 
   Info,
   CheckCircle2,
-  FileText
+  FileText,
+  Trash2,
+  UserMinus
 } from "lucide-react";
 import { useTranslation } from "../context/LanguageContext.jsx";
 import TenantDocumentsModal from "../components/tenants/TenantDocumentsModal.jsx";
+import ConfirmDialog from "../components/common/ConfirmDialog.jsx";
 
 function FormSection({ title, icon: Icon, children }) {
   return (
@@ -46,6 +49,7 @@ export default function Tenants() {
   const [processing, setProcessing] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [selectedTenantForDocs, setSelectedTenantForDocs] = useState(null);
+  const [confirmConfig, setConfirmConfig] = useState({ isOpen: false });
 
   const isLandlord = user?.role === "landlord";
 
@@ -143,6 +147,50 @@ export default function Tenants() {
     } finally {
       setProcessing(false);
     }
+  };
+
+  const onRemove = (id) => {
+    setConfirmConfig({
+      isOpen: true,
+      title: "Remove Tenant",
+      message: "Are you sure you want to remove this tenant from the active list? You can restore them later.",
+      confirmText: "Remove Tenant",
+      type: "warning",
+      onConfirm: async () => {
+        setConfirmConfig(prev => ({ ...prev, loading: true }));
+        try {
+          await tenantsApi.remove(id);
+          toast.success("Tenant removed temporarily");
+          await refresh();
+          setConfirmConfig({ isOpen: false });
+        } catch (err) {
+          toast.error("Failed to remove tenant");
+          setConfirmConfig(prev => ({ ...prev, loading: false }));
+        }
+      }
+    });
+  };
+  
+  const onRemovePermanent = (id) => {
+    setConfirmConfig({
+      isOpen: true,
+      title: "CRITICAL: Permanent Deletion",
+      message: "This will permanently delete the tenant account, all documents, and all payment history. This action CANNOT be undone.",
+      confirmText: "Delete Everything",
+      type: "danger",
+      onConfirm: async () => {
+        setConfirmConfig(prev => ({ ...prev, loading: true }));
+        try {
+          await tenantsApi.removePermanent(id);
+          toast.success("Tenant and all data permanently deleted");
+          await refresh();
+          setConfirmConfig({ isOpen: false });
+        } catch (err) {
+          toast.error("Failed to permanently delete tenant");
+          setConfirmConfig(prev => ({ ...prev, loading: false }));
+        }
+      }
+    });
   };
 
   if (!isLandlord) {
@@ -321,47 +369,66 @@ export default function Tenants() {
               ) : tenants.length === 0 ? (
                 <div className="p-8 text-center text-sm text-gray-500 italic">No tenants registered yet.</div>
               ) : (
-                tenants.map((t) => (
-                  <div key={t._id} className="p-4 hover:bg-gray-50 transition-colors">
+                tenants.map((tenant) => (
+                  <div key={tenant._id} className="p-4 hover:bg-gray-50 transition-colors">
                     <div className="flex items-start justify-between gap-4 mb-2">
                       <div>
-                        <div className="font-bold text-gray-900">{t.name}</div>
+                        <div className="font-bold text-gray-900">{tenant.name}</div>
                         <div className="text-xs text-gray-500 flex items-center gap-1">
-                          <MapPin size={10} /> {t.propertyId?.name || "No Property"}
+                          <MapPin size={10} /> {tenant.propertyId?.name || "No Property"}
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-sm font-bold text-gray-900">₹ {Number(t.rentAmount).toLocaleString()}</div>
+                        <div className="text-sm font-bold text-gray-900">₹ {Number(tenant.rentAmount).toLocaleString()}</div>
                         <div className="text-[10px] text-gray-400 uppercase font-medium">Monthly Rent</div>
                       </div>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-2 text-[11px] text-gray-600 bg-gray-50 p-2 rounded-lg">
-                      <div className="flex items-center gap-1"><Phone size={10} /> {t.phone}</div>
-                      <div className="flex items-center gap-1"><ShieldCheck size={10} /> {t.aadhaarNumber ? "KYC Done" : "KYC Pending"}</div>
+                      <div className="flex items-center gap-1"><Phone size={10} /> {tenant.phone}</div>
+                      <div className="flex items-center gap-1"><ShieldCheck size={10} /> {tenant.aadhaarNumber ? "KYC Done" : "KYC Pending"}</div>
                     </div>
 
-                    <div className="mt-3 flex items-center justify-between text-[10px]">
-                      <div className="flex items-center gap-1 text-emerald-600 font-medium bg-emerald-50 px-1.5 py-0.5 rounded">
-                        Lease Ends: {new Date(t.leaseEnd).toLocaleDateString()}
+                    <div className="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded-lg">
+                        <Calendar size={12} /> {new Date(tenant.leaseEnd).toLocaleDateString()}
                       </div>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-7 px-2 text-[10px] border border-indigo-100 text-indigo-600 hover:bg-indigo-50"
-                        onClick={() => onEdit(t)}
-                      >
-                        Edit Details
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-7 px-2 text-[10px] border border-emerald-100 text-emerald-600 hover:bg-emerald-50"
-                        onClick={() => setSelectedTenantForDocs(t)}
-                      >
-                        <FileText size={12} className="mr-1" />
-                        Docs
-                      </Button>
+                      
+                      <div className="flex items-center gap-1.5">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 px-2 text-[10px] border border-indigo-100 text-indigo-600 hover:bg-indigo-50 font-bold"
+                          onClick={() => onEdit(tenant)}
+                        >
+                          {t('editDetails') || 'Edit'}
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 px-2 text-[10px] border border-emerald-100 text-emerald-600 hover:bg-emerald-50 font-bold"
+                          onClick={() => setSelectedTenantForDocs(tenant)}
+                        >
+                          <FileText size={12} className="mr-1" />
+                          Docs
+                        </Button>
+                        <div className="flex items-center gap-1 ml-1 pl-1 border-l border-gray-100">
+                          <button 
+                            onClick={() => onRemove(tenant._id)}
+                            className="p-1.5 text-amber-500 hover:bg-amber-50 rounded-lg transition-colors"
+                            title="Remove (Shadow Delete)"
+                          >
+                            <UserMinus size={16} />
+                          </button>
+                          <button 
+                            onClick={() => onRemovePermanent(tenant._id)}
+                            className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                            title="Delete Permanently"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))
@@ -377,6 +444,11 @@ export default function Tenants() {
           onClose={() => setSelectedTenantForDocs(null)} 
         />
       )}
+
+      <ConfirmDialog 
+        {...confirmConfig} 
+        onClose={() => setConfirmConfig({ isOpen: false })} 
+      />
     </div>
   );
 }

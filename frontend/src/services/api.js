@@ -37,7 +37,8 @@ export const tenantsApi = {
   create: (payload) => api.post("/tenants", payload).then((r) => r.data),
   get: (id) => api.get(`/tenants/${id}`).then((r) => r.data),
   update: (id, payload) => api.put(`/tenants/${id}`, payload).then((r) => r.data),
-  remove: (id) => api.delete(`/tenants/${id}`).then((r) => r.data)
+  remove: (id) => api.delete(`/tenants/${id}`).then((r) => r.data),
+  removePermanent: (id) => api.delete(`/tenants/${id}/permanent`).then((r) => r.data)
 };
 
 export const paymentsApi = {
