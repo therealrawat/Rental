@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, Info, X } from 'lucide-react';
 import Button from './Button.jsx';
 import { useTranslation } from '../../context/LanguageContext.jsx';
 
@@ -17,6 +17,39 @@ export default function ConfirmDialog({
   const { t } = useTranslation();
   
   if (!isOpen) return null;
+
+  const styles = {
+    danger: {
+      bg: 'bg-rose-500/10',
+      border: 'border-rose-500/20',
+      text: 'text-rose-500',
+      iconBg: 'bg-rose-500/20',
+      btn: 'bg-rose-600 hover:bg-rose-700 shadow-rose-900/20',
+      headerText: t('actionCannotBeUndone') || 'This action cannot be undone',
+      Icon: AlertTriangle
+    },
+    info: {
+      bg: 'bg-emerald-500/10',
+      border: 'border-emerald-500/20',
+      text: 'text-emerald-500',
+      iconBg: 'bg-emerald-500/20',
+      btn: 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-900/20',
+      headerText: 'Please confirm',
+      Icon: Info
+    },
+    warning: {
+      bg: 'bg-amber-500/10',
+      border: 'border-amber-500/20',
+      text: 'text-amber-500',
+      iconBg: 'bg-amber-500/20',
+      btn: 'bg-amber-600 hover:bg-amber-700 shadow-amber-900/20',
+      headerText: 'Are you sure?',
+      Icon: AlertTriangle
+    }
+  };
+
+  const currentStyle = styles[type] || styles.danger;
+  const IconComponent = currentStyle.Icon;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -36,13 +69,13 @@ export default function ConfirmDialog({
 
         {/* Content */}
         <div className="p-6 space-y-4">
-          <div className="flex gap-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20">
-            <div className="shrink-0 w-10 h-10 bg-rose-500/20 rounded-xl flex items-center justify-center text-rose-500">
-              <AlertTriangle size={20} fill="currentColor" fillOpacity={0.2} />
+          <div className={`flex gap-4 p-4 rounded-xl ${currentStyle.bg} border ${currentStyle.border}`}>
+            <div className={`shrink-0 w-10 h-10 ${currentStyle.iconBg} rounded-xl flex items-center justify-center ${currentStyle.text}`}>
+              <IconComponent size={20} fill="currentColor" fillOpacity={0.2} />
             </div>
             <div>
               <p className="text-gray-100 font-bold text-sm">
-                {t('actionCannotBeUndone') || 'This action cannot be undone'}
+                {type === 'danger' ? (t('actionCannotBeUndone') || 'This action cannot be undone') : currentStyle.headerText}
               </p>
               <p className="text-gray-400 text-xs mt-1 leading-relaxed font-medium">
                 {message}
@@ -62,9 +95,7 @@ export default function ConfirmDialog({
             {cancelText || t('cancel')}
           </Button>
           <Button 
-            className={`flex-1 py-2.5 rounded-xl font-bold text-sm text-white shadow-lg transition-all ${
-              type === 'danger' ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-900/20' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-900/20'
-            }`}
+            className={`flex-1 py-2.5 rounded-xl font-bold text-sm text-white shadow-lg transition-all ${currentStyle.btn}`}
             onClick={onConfirm}
             disabled={loading}
           >
