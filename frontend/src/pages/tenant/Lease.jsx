@@ -1,27 +1,90 @@
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import Button from "../../components/common/Button.jsx";
+import Input from "../../components/common/Input.jsx";
 import { tenantsApi } from "../../services/api.js";
 import { useAuth } from "../../context/AuthContext.jsx";
-import { Home, Calendar, FileText, Download, Clock, CreditCard, User as UserIcon, ShieldCheck } from "lucide-react";
+import { validators } from "../../utils/validators.js";
+import { 
+  Home, 
+  Calendar, 
+  FileText, 
+  Download, 
+  Clock, 
+  CreditCard, 
+  User as UserIcon, 
+  ShieldCheck, 
+  Briefcase, 
+  Users, 
+  Phone, 
+  CheckCircle2, 
+  Info,
+  Edit3,
+  X
+} from "lucide-react";
+
+function FormSection({ title, icon: Icon, children }) {
+  return (
+    <div className="mb-8 last:mb-0">
+      <div className="flex items-center gap-2 mb-4 pb-2 border-b border-gray-100">
+        {Icon && <Icon size={18} className="text-indigo-600" />}
+        <h3 className="font-semibold text-gray-900 text-sm">{title}</h3>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        {children}
+      </div>
+    </div>
+  );
+}
 
 export default function Lease() {
   const { user } = useAuth();
   const [lease, setLease] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [processing, setProcessing] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors }
+  } = useForm({
+    mode: "onChange"
+  });
+
+  const fetchLease = async () => {
+    try {
+      const data = await tenantsApi.list();
+      if (data.length > 0) {
+        setLease(data[0]);
+        reset(data[0]);
+      }
+    } catch (err) {
+      toast.error("Failed to load lease info");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    (async () => {
-      try {
-        const data = await tenantsApi.list();
-        if (data.length > 0) setLease(data[0]);
-      } catch (err) {
-        toast.error("Failed to load lease info");
-      } finally {
-        setLoading(false);
-      }
-    })();
+    fetchLease();
   }, []);
+
+  const onUpdateProfile = async (values) => {
+    setProcessing(true);
+    try {
+      await tenantsApi.update(lease._id, values);
+      toast.success("Profile updated successfully");
+      setIsEditing(false);
+      await fetchLease();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to update profile");
+    } finally {
+      setProcessing(false);
+    }
+  };
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] text-gray-500">
@@ -45,6 +108,123 @@ export default function Lease() {
     );
   }
 
+  if (isEditing) {
+    return (
+      <div className="max-w-4xl mx-auto pb-20">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Update My Profile</h1>
+            <p className="text-gray-500 mt-1 text-sm">Review and update your personal, employment, and occupancy details.</p>
+          </div>
+          <button 
+            onClick={() => setIsEditing(false)}
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+          <div className="p-10 border-b bg-amber-50/50 flex items-center gap-3">
+            <Info size={18} className="text-amber-600" />
+            <p className="text-xs font-medium text-amber-800 uppercase tracking-wider">
+              Fields like Rent and Lease Dates are locked and can only be changed by the Landlord.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit(onUpdateProfile)} className="p-10 space-y-12">
+            <FormSection title="1. Personal Information" icon={UserIcon}>
+              <Input label="Full Name" maxLength={50} error={errors.name?.message} {...register("name", validators.name)} />
+              <Input label="Phone Number" maxLength={10} error={errors.phone?.message} {...register("phone", validators.phone)} />
+              <Input label="Aadhaar Number" maxLength={12} error={errors.aadhaarNumber?.message} {...register("aadhaarNumber", validators.aadhaar)} />
+              <Input label="PAN Card Number" maxLength={10} error={errors.panNumber?.message} {...register("panNumber", validators.pan)} />
+              <div className="md:col-span-2">
+                <Input label="Permanent (Hometown) Address" maxLength={200} error={errors.permanentAddress?.message} {...register("permanentAddress")} />
+              </div>
+            </FormSection>
+
+            <FormSection title="2. Employment & Income" icon={Briefcase}>
+              <label className="block">
+                <div className="mb-1 text-sm font-medium text-gray-700">Employment Type</div>
+                <select className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-200 transition" {...register("employmentType")}>
+                  <option value="salaried">Salaried</option>
+                  <option value="self-employed">Self-Employed</option>
+                  <option value="student">Student</option>
+                  <option value="other">Other</option>
+                </select>
+              </label>
+              <Input label="Company Name" maxLength={100} {...register("companyName")} />
+              <Input label="Official Email ID" {...register("officialEmail", { pattern: validators.email.pattern })} />
+              <Input label="Office Address" maxLength={200} {...register("officeAddress")} />
+            </FormSection>
+
+            <FormSection title="3. Occupancy Details" icon={Users}>
+              <Input label="Number of Occupants" type="number" maxLength={2} {...register("numOccupants", { min: 1, max: 20 })} />
+              <Input label="Marital Status" maxLength={20} {...register("maritalStatus")} />
+              <div className="md:col-span-2">
+                <Input label="Occupant Names & Relationships" maxLength={500} {...register("occupantsDetails")} />
+              </div>
+              <label className="block">
+                <div className="mb-1 text-sm font-medium text-gray-700">Food Preference</div>
+                <select className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-200 transition" {...register("foodPreference")}>
+                  <option value="veg">Vegetarian</option>
+                  <option value="non-veg">Non-Vegetarian</option>
+                  <option value="any">Any / No Preference</option>
+                </select>
+              </label>
+              <Input label="Vehicle Details" maxLength={100} {...register("vehicleDetails")} />
+            </FormSection>
+
+            <FormSection title="4. References & Contacts" icon={Phone}>
+              <Input label="Emergency Contact" maxLength={50} {...register("emergencyContact")} />
+              <Input label="Local City Contact" maxLength={50} {...register("localContact")} />
+            </FormSection>
+
+            <FormSection title="5. Policies & Consents" icon={CheckCircle2}>
+              <div className="md:col-span-2 space-y-4 pt-2">
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <input type="checkbox" className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300" {...register("policeVerificationConsent")} />
+                  <span className="text-sm text-gray-700 font-medium">I agree to mandatory Police Verification process</span>
+                </label>
+                <div className="grid grid-cols-3 gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300" {...register("smokingAllowed")} />
+                    <span className="text-xs text-gray-600">Smoking</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300" {...register("drinkingAllowed")} />
+                    <span className="text-xs text-gray-600">Drinking</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300" {...register("petsAllowed")} />
+                    <span className="text-xs text-gray-600">Pets</span>
+                  </label>
+                </div>
+              </div>
+            </FormSection>
+
+            <div className="pt-10 flex gap-4 border-t border-gray-50">
+              <Button 
+                className="flex-1 bg-gray-100 text-gray-600 py-4 font-bold text-sm uppercase tracking-widest" 
+                onClick={() => setIsEditing(false)}
+                type="button"
+              >
+                Cancel Changes
+              </Button>
+              <Button 
+                className="flex-[2] bg-gray-900 text-white py-4 font-bold text-sm uppercase tracking-widest shadow-xl shadow-gray-200"
+                disabled={processing}
+                type="submit"
+              >
+                {processing ? "Saving..." : "Update My Profile"}
+              </Button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
       {/* Header */}
@@ -56,10 +236,20 @@ export default function Lease() {
           <h1 className="text-4xl font-bold text-gray-900 tracking-tight">My Lease Details</h1>
           <p className="text-gray-500 mt-2 font-medium">Agreement between {lease.propertyId?.userId?.name} and {user?.name}</p>
         </div>
-        <Button className="bg-gray-900 text-white rounded-2xl flex items-center gap-2 px-8 py-3 shadow-xl shadow-gray-900/20 hover:scale-105 transition-all">
-          <Download size={18} />
-          Export as PDF
-        </Button>
+        <div className="flex gap-3">
+          <Button 
+            variant="ghost"
+            onClick={() => setIsEditing(true)}
+            className="bg-white border border-gray-200 text-gray-700 rounded-2xl flex items-center gap-2 px-6 py-3 hover:bg-gray-50 transition-all"
+          >
+            <Edit3 size={18} />
+            Edit Profile
+          </Button>
+          <Button className="bg-gray-900 text-white rounded-2xl flex items-center gap-2 px-8 py-3 shadow-xl shadow-gray-900/20 hover:scale-105 transition-all">
+            <Download size={18} />
+            Export as PDF
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-12">
@@ -175,9 +365,9 @@ export default function Lease() {
             <h3 className="text-lg font-bold text-gray-900 mb-6">Agreement Terms</h3>
             <div className="space-y-5">
               {[
-                { label: 'Pets', value: 'Not Allowed', ok: false },
-                { label: 'Parking', value: '1 Reserved Spot', ok: true },
-                { label: 'Smoking', value: 'Prohibited', ok: false },
+                { label: 'Pets', value: lease.petsAllowed ? 'Allowed' : 'Not Allowed', ok: lease.petsAllowed },
+                { label: 'Parking', value: lease.vehicleDetails || 'None', ok: !!lease.vehicleDetails },
+                { label: 'Smoking', value: lease.smokingAllowed ? 'Allowed' : 'Prohibited', ok: lease.smokingAllowed },
                 { label: 'Subletting', value: 'Not Allowed', ok: false }
               ].map((term, i) => (
                 <div key={i} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">

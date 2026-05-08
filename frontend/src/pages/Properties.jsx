@@ -35,12 +35,14 @@ function FormSection({ title, icon: Icon, children }) {
 export default function Properties() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors }
   } = useForm({
     mode: "onChange",
@@ -92,17 +94,41 @@ export default function Properties() {
     refresh();
   }, []);
 
-  const onCreate = async (values) => {
-    setCreating(true);
+  const onEdit = (property) => {
+    setEditingId(property._id);
+    reset(property);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const onCancelEdit = () => {
+    setEditingId(null);
+    reset({ 
+      name: "", address: "", units: 1, rent: 0, status: "active",
+      landmark: "", pincode: "", propertyType: "2BHK", floorNumber: 0, totalFloors: 0, hasLift: false,
+      securityDeposit: 0, maintenanceCharges: 0, maintenancePaidBy: "tenant", noticePeriod: 1, lockInPeriod: 0,
+      electricityMeterType: "postpaid", waterSupply: "", powerBackup: "", parkingDetails: "",
+      furnishingStatus: "unfurnished", furnitureInventory: "", preferredTenant: "no-preference",
+      foodPolicy: "", petPolicy: "", guestPolicy: "", ownershipProofType: "", societyNocRequired: false
+    });
+  };
+
+  const onSubmit = async (values) => {
+    setProcessing(true);
     try {
-      await propertiesApi.create(values);
-      toast.success("Property created successfully");
+      if (editingId) {
+        await propertiesApi.update(editingId, values);
+        toast.success("Property updated successfully");
+        setEditingId(null);
+      } else {
+        await propertiesApi.create(values);
+        toast.success("Property created successfully");
+      }
       reset();
       await refresh();
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to create property");
+      toast.error(err?.response?.data?.message || `Failed to ${editingId ? 'update' : 'create'} property`);
     } finally {
-      setCreating(false);
+      setProcessing(false);
     }
   };
 
@@ -119,11 +145,15 @@ export default function Properties() {
         {/* Form Column */}
         <div className="lg:col-span-3 rounded-2xl border bg-white shadow-sm overflow-hidden">
           <div className="bg-gray-50/50 p-5 border-b flex items-center justify-between">
-            <div className="text-sm font-bold text-gray-900 uppercase tracking-tight">Add New Property Profile</div>
-            <div className="text-[10px] text-emerald-600 font-medium bg-emerald-50 px-2 py-1 rounded">Asset Management</div>
+            <div className="text-sm font-bold text-gray-900 uppercase tracking-tight">
+              {editingId ? "Edit Property Profile" : "Add New Property Profile"}
+            </div>
+            <div className={`text-[10px] font-medium px-2 py-1 rounded ${editingId ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'}`}>
+              {editingId ? 'Edit Mode' : 'Asset Management'}
+            </div>
           </div>
           
-          <form onSubmit={handleSubmit(onCreate)} className="p-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="p-6">
             <FormSection title="1. Identification & Location" icon={Building2}>
               <div className="md:col-span-2">
                 <Input label="Property Name / Number" placeholder="Flat 402, Skyline Residency" error={errors.name?.message} {...register("name", { required: "Name is required", maxLength: 100 })} />
@@ -232,9 +262,14 @@ export default function Properties() {
               </div>
             </FormSection>
 
-            <div className="mt-10 pt-6 border-t">
-              <Button className="w-full bg-gray-900 text-white py-3 shadow-lg shadow-gray-200 hover:shadow-xl transition-all" disabled={creating} type="submit">
-                {creating ? "Creating Asset Profile..." : "Create Property Profile"}
+            <div className="mt-10 pt-6 border-t flex gap-3">
+              {editingId && (
+                <Button variant="ghost" className="flex-1 border" onClick={onCancelEdit} type="button">
+                  Cancel
+                </Button>
+              )}
+              <Button className={`flex-[2] text-white py-3 shadow-lg transition-all ${editingId ? 'bg-amber-600 hover:bg-amber-700 shadow-amber-100' : 'bg-gray-900 shadow-gray-200 hover:shadow-xl'}`} disabled={processing} type="submit">
+                {processing ? "Processing..." : editingId ? "Update Property Profile" : "Create Property Profile"}
               </Button>
             </div>
           </form>
@@ -278,7 +313,15 @@ export default function Properties() {
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-sm font-bold text-gray-900">₹ {Number(p.rent).toLocaleString()}</div>
-                        <div className="text-[10px] text-gray-400 font-medium">per month</div>
+                        <div className="text-[10px] text-gray-400 font-medium mb-2">per month</div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 px-2 text-[10px] border border-indigo-100 text-indigo-600 hover:bg-indigo-50"
+                          onClick={() => onEdit(p)}
+                        >
+                          Edit Details
+                        </Button>
                       </div>
                     </div>
                   </div>

@@ -39,7 +39,8 @@ export default function Tenants() {
   const [tenants, setTenants] = useState([]);
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   const isLandlord = user?.role === "landlord";
 
@@ -97,17 +98,49 @@ export default function Tenants() {
     else setLoading(false);
   }, [isLandlord]);
 
-  const onCreate = async (values) => {
-    setCreating(true);
+  const onEdit = (tenant) => {
+    setEditingId(tenant._id);
+    const formData = { ...tenant };
+    // Handle nested propertyId if it's an object from populate
+    if (tenant.propertyId?._id) {
+      formData.propertyId = tenant.propertyId._id;
+    }
+    // Format dates for input type="date"
+    if (tenant.leaseStart) formData.leaseStart = new Date(tenant.leaseStart).toISOString().split('T')[0];
+    if (tenant.leaseEnd) formData.leaseEnd = new Date(tenant.leaseEnd).toISOString().split('T')[0];
+    
+    reset(formData);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const onCancelEdit = () => {
+    setEditingId(null);
+    reset({
+      propertyId: "", name: "", email: "", phone: "", leaseStart: "", leaseEnd: "", rentAmount: 0,
+      aadhaarNumber: "", panNumber: "", permanentAddress: "", employmentType: "salaried",
+      companyName: "", officeAddress: "", officialEmail: "", numOccupants: 1, occupantsDetails: "",
+      maritalStatus: "", foodPreference: "any", vehicleDetails: "", emergencyContact: "", localContact: "",
+      policeVerificationConsent: false, smokingAllowed: false, drinkingAllowed: false, petsAllowed: false
+    });
+  };
+
+  const onSubmit = async (values) => {
+    setProcessing(true);
     try {
-      const res = await tenantsApi.create(values);
-      toast.success(res.message || "Tenant created successfully");
+      if (editingId) {
+        await tenantsApi.update(editingId, values);
+        toast.success("Tenant profile updated successfully");
+        setEditingId(null);
+      } else {
+        const res = await tenantsApi.create(values);
+        toast.success(res.message || "Tenant created successfully");
+      }
       reset();
       await refresh();
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to create tenant");
+      toast.error(err?.response?.data?.message || `Failed to ${editingId ? 'update' : 'create'} tenant`);
     } finally {
-      setCreating(false);
+      setProcessing(false);
     }
   };
 
@@ -133,15 +166,21 @@ export default function Tenants() {
         {/* Form Column */}
         <div className="lg:col-span-3 rounded-2xl border bg-white shadow-sm overflow-hidden">
           <div className="bg-gray-50/50 p-5 border-b flex items-center justify-between">
-            <div className="text-sm font-bold text-gray-900 uppercase tracking-tight">New Tenant Registration</div>
-            <div className="text-[10px] text-indigo-600 font-medium bg-indigo-50 px-2 py-1 rounded">V2 Registration Form</div>
+            <div className="text-sm font-bold text-gray-900 uppercase tracking-tight">
+              {editingId ? "Edit Tenant Profile" : "New Tenant Registration"}
+            </div>
+            <div className={`text-[10px] font-medium px-2 py-1 rounded ${editingId ? 'bg-amber-50 text-amber-600' : 'bg-indigo-50 text-indigo-600'}`}>
+              {editingId ? 'Edit Mode' : 'V2 Registration Form'}
+            </div>
           </div>
           
-          <form onSubmit={handleSubmit(onCreate)} className="p-6">
-            <p className="text-xs text-gray-500 mb-6 flex items-center gap-2 bg-blue-50 p-3 rounded-lg border border-blue-100">
-              <Info size={14} className="text-blue-600 shrink-0" />
-              This will create a tenant record and an automated login account (pass123) for the resident.
-            </p>
+          <form onSubmit={handleSubmit(onSubmit)} className="p-6">
+            {!editingId && (
+              <p className="text-xs text-gray-500 mb-6 flex items-center gap-2 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                <Info size={14} className="text-blue-600 shrink-0" />
+                This will create a tenant record and an automated login account (pass123) for the resident.
+              </p>
+            )}
 
             <FormSection title="1. Basic Lease Info" icon={Home}>
               <label className="block">
@@ -244,13 +283,18 @@ export default function Tenants() {
               </div>
             </FormSection>
 
-            <div className="mt-10 pt-6 border-t">
+            <div className="mt-10 pt-6 border-t flex gap-3">
+              {editingId && (
+                <Button variant="ghost" className="flex-1 border" onClick={onCancelEdit} type="button">
+                  Cancel
+                </Button>
+              )}
               <Button 
-                className="w-full bg-gray-900 text-white py-3 shadow-lg shadow-gray-200 hover:shadow-xl transition-all" 
-                disabled={creating} 
+                className={`flex-[2] text-white py-3 shadow-lg transition-all ${editingId ? 'bg-amber-600 hover:bg-amber-700 shadow-amber-100' : 'bg-gray-900 shadow-gray-200 hover:shadow-xl'}`}
+                disabled={processing} 
                 type="submit"
               >
-                {creating ? "Processing Registration..." : "Complete Tenant Registration"}
+                {processing ? "Processing..." : editingId ? "Update Tenant Profile" : "Complete Tenant Registration"}
               </Button>
             </div>
           </form>
@@ -285,7 +329,7 @@ export default function Tenants() {
                           <MapPin size={10} /> {t.propertyId?.name || "No Property"}
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right shrink-0">
                         <div className="text-sm font-bold text-gray-900">₹ {Number(t.rentAmount).toLocaleString()}</div>
                         <div className="text-[10px] text-gray-400 uppercase font-medium">Monthly Rent</div>
                       </div>
@@ -300,6 +344,14 @@ export default function Tenants() {
                       <div className="flex items-center gap-1 text-emerald-600 font-medium bg-emerald-50 px-1.5 py-0.5 rounded">
                         Lease Ends: {new Date(t.leaseEnd).toLocaleDateString()}
                       </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-7 px-2 text-[10px] border border-indigo-100 text-indigo-600 hover:bg-indigo-50"
+                        onClick={() => onEdit(t)}
+                      >
+                        Edit Details
+                      </Button>
                     </div>
                   </div>
                 ))
