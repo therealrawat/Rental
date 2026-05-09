@@ -9,7 +9,11 @@ const STORAGE_KEY = "landlord_app_auth";
 function readStoredAuth() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
+    const auth = raw ? JSON.parse(raw) : null;
+    if (auth?.token) {
+      setAuthToken(auth.token);
+    }
+    return auth;
   } catch {
     return null;
   }
@@ -32,6 +36,7 @@ export function AuthProvider({ children }) {
     setLoading(true);
     try {
       const data = await authApi.login({ email, password });
+      setAuthToken(data.token);
       setAuth(data);
       writeStoredAuth(data);
       toast.success("Welcome back");
@@ -48,6 +53,7 @@ export function AuthProvider({ children }) {
     setLoading(true);
     try {
       const data = await authApi.register({ name, email, password, role });
+      setAuthToken(data.token);
       setAuth(data);
       writeStoredAuth(data);
       toast.success("Account created");
