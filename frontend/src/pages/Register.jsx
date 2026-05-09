@@ -41,8 +41,8 @@ export default function Register() {
                 LOGIN
              </Link>
              {/* Active Tab */}
-             <div className="bg-white text-black font-extrabold py-3 px-8 rounded-l-full shadow-md z-10 w-32 text-center text-sm tracking-widest relative">
-                SIGN UP
+             <div className="bg-white text-black font-extrabold py-3 px-8 rounded-l-full shadow-md z-10 w-32 text-center text-sm tracking-widest relative whitespace-nowrap">
+                REGISTER
              </div>
           </div>
           
@@ -51,8 +51,8 @@ export default function Register() {
             <Link to="/login" className="text-white/80 font-bold py-2 px-6 text-sm tracking-widest hover:text-white transition-colors">
               LOGIN
             </Link>
-            <div className="bg-white text-[#9e3a6a] font-extrabold py-2 px-6 rounded-full shadow-md text-sm tracking-widest">
-              SIGN UP
+            <div className="bg-white text-[#9e3a6a] font-extrabold py-2 px-6 rounded-full shadow-md text-sm tracking-widest whitespace-nowrap">
+              REGISTER
             </div>
           </div>
         </div>
@@ -129,6 +129,11 @@ export default function Register() {
                </button>
              </div>
           </form>
+
+          {/* Tagline */}
+          <div className="w-full max-w-[280px] mt-8 pt-6 border-t border-gray-100 flex items-center justify-center">
+            <span className="text-xs font-medium italic text-gray-400 tracking-widest">Home away from home</span>
+          </div>
         </div>
       </div>
     </div>
