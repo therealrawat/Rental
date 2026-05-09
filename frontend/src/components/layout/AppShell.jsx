@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, Outlet } from "react-router-dom";
 import Header from "./Header.jsx";
 import Sidebar from "./Sidebar.jsx";
@@ -8,6 +8,11 @@ export default function AppShell({ children }) {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const location = useLocation();
 
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setIsMobileSidebarOpen(false);
+  }, [location.pathname]);
+
   // Breadcrumb logic
   const pathnames = location.pathname.split('/').filter((x) => x);
   const breadcrumbs = pathnames.map((name) => name.charAt(0).toUpperCase() + name.slice(1));
@@ -16,12 +21,15 @@ export default function AppShell({ children }) {
     <div className="layout-wrapper">
       <Sidebar 
         isOpen={isMobileSidebarOpen} 
-        isExpanded={isSidebarExpanded} 
+        isExpanded={isSidebarExpanded || isMobileSidebarOpen} 
       />
       
-      {/* Overlay for mobile sidebar - stays until hamburger is clicked again */}
+      {/* Overlay for mobile sidebar - click to close */}
       {isMobileSidebarOpen && (
-        <div className="fixed inset-0 bg-black/20 z-10 md:hidden backdrop-blur-sm" />
+        <div 
+          className="fixed inset-0 bg-black/20 z-10 md:hidden backdrop-blur-sm cursor-pointer" 
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
       )}
 
       <div className="main-container">
